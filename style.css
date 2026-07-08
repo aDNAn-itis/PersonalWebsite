@@ -1,0 +1,158 @@
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #e8e4db;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.scene-container {
+    position: relative;
+    width: 95vw;
+    max-width: 1200px;
+    aspect-ratio: 1080 / 723; 
+    background-image: url('assets/a/black%20_background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.interactive-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    
+    filter: drop-shadow(6px 6px 10px rgba(0,0,0,.18));
+    
+    /* ADDED OPACITY TRANSITION FOR CINEMATIC EFFECT */
+    transition: opacity 0.5s ease, transform 0.35s ease, filter 0.35s ease;
+    
+    pointer-events: none; 
+}
+
+/* We use a class instead of :hover so JS can trigger it from the hitboxes */
+.interactive-item.is-hovered {
+    transform: translateY(-8px) scale(1.03);
+    filter:
+        brightness(1.08)
+        drop-shadow(0 18px 22px rgba(0,0,0,.25))
+        drop-shadow(0 0 20px rgba(148,163,255,.35));
+    
+    z-index: 10;
+}
+
+/* Invisible Hitbox Overlay System */
+.hitbox-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20;
+}
+
+.hitbox {
+    position: absolute;
+    cursor: pointer;
+}
+
+/* Transparent Overlay Modal */
+.info-panels-modal {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* No dark background, just pure transparency! */
+    background-color: transparent; 
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.info-panels-modal.modal-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 10px 20px;
+    border-radius: 30px;
+    color: #333;
+    font-size: 1.05rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+}
+
+.modal-content-container {
+    width: 90%;
+    max-width: 800px;
+    /* No more popup card! Text goes directly on the canvas */
+    color: #222;
+    font-family: 'Inter', sans-serif;
+    
+    /* This CSS trick blends the dark text directly into the watercolor background like real ink! */
+    mix-blend-mode: multiply;
+    opacity: 0.9;
+}
+
+.panel {
+    display: none;
+    text-align: center;
+    /* Gentle fade in instead of popup slide */
+    animation: fadeInText 0.8s ease forwards;
+}
+
+.panel.active {
+    display: block;
+}
+
+.panel h2 {
+    margin-top: 0;
+    font-size: 4.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    letter-spacing: -0.04em;
+    color: #111;
+}
+
+.panel p {
+    line-height: 1.6;
+    font-size: 1.6rem;
+    color: #222;
+    margin: 0;
+    font-weight: 400;
+}
+
+@keyframes fadeInText {
+    from { opacity: 0; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1); }
+}

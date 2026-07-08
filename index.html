@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Layered Portfolio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="scene-container">
+        
+        <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
+        <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
+        <img class="interactive-item" id="bag" src="assets/a/bag_transparent.png" alt="Bag">
+        <!-- Shifting the books inward by overriding left position -->
+        <img class="interactive-item" id="books" src="assets/a/books_transparent.png" alt="Books" style="left: 6%;">
+        <img class="interactive-item" id="cat" src="assets/a/cat_transparent.png" alt="Cat">
+        <img class="interactive-item" id="headphone" src="assets/a/headphone_transparent.png" alt="Headphones">
+        <img class="interactive-item" id="laptop" src="assets/a/laptop_transparent.png" alt="Laptop">
+        <img class="interactive-item" id="paper" src="assets/a/paper_transparent.png" alt="Paper & Pen">
+        <img class="interactive-item" id="phone" src="assets/a/phone_transparent.png" alt="Phone">
+        
+        <!-- Invisible Hitboxes for accurate hovering -->
+        <div class="hitbox-container">
+            <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
+            <div class="hitbox" data-target="boy" style="top: 13.8%; left: 16.3%; width: 58.1%; height: 60.3%;"></div>
+            <div class="hitbox" data-target="bag" style="top: 43.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
+            <div class="hitbox" data-target="headphone" style="top: 18.1%; left: 51.2%; width: 13.7%; height: 21.7%;"></div>
+            <div class="hitbox" data-target="laptop" style="top: 61.8%; left: 39.4%; width: 13.2%; height: 15.8%;"></div>
+            <div class="hitbox" data-target="cat" style="top: 47.2%; left: 22.3%; width: 14.4%; height: 11.2%;"></div>
+            <div class="hitbox" data-target="paper" style="top: 12.4%; left: 19.0%; width: 13.5%; height: 18.1%;"></div>
+            
+            <!-- Books shifted +6% to match the new image position -->
+            <div class="hitbox" data-target="books" style="top: 54.8%; left: 11.6%; width: 11.4%; height: 18.1%;"></div>
+            
+            <!-- Smallest objects last to ensure they aren't covered -->
+            <div class="hitbox" data-target="phone" style="top: 45.4%; left: 53.3%; width: 7.1%; height: 9.8%;"></div>
+        </div>
+        
+        <!-- Full-Screen Information Modal -->
+        <section class="info-panels-modal" id="modal-overlay">
+            <button class="close-btn" id="close-btn">&larr; Back to Desk</button>
+            
+            <div class="modal-content-container">
+                <div id="boy-content" class="panel">
+                    <h2>About Me</h2>
+                    <p>A Computer Science student graduating in May 2026, with a strong aim to transition into Astrophysics and Physics research.</p>
+                </div>
+
+                <div id="bag-content" class="panel">
+                    <h2>My Bag</h2>
+                    <p>Always packed and ready for the next adventure or study session!</p>
+                </div>
+
+                <div id="phone-content" class="panel">
+                    <h2>Contact / Socials</h2>
+                    <p>Reach out to me via email or connect with me on social media.</p>
+                </div>
+
+                <div id="headphone-content" class="panel">
+                    <h2>Favorite Music</h2>
+                    <p>A curated list of my favorite tracks, from lofi hip-hop to classic Studio Ghibli soundtracks.</p>
+                </div>
+                
+                <div id="laptop-content" class="panel">
+                    <h2>Software</h2>
+                    <p>Highlighting the <strong>"FlyingRay"</strong> interactive dashboard built for GSoC 2025 under OpenAstronomy, and the <strong>CampusConnect</strong> GitHub project.</p>
+                </div>
+
+                <div id="books-content" class="panel">
+                    <h2>Reading List</h2>
+                    <p>Currently exploring topics in astrophysics, clean code architecture, and classic sci-fi novels.</p>
+                </div>
+                
+                <div id="paper-content" class="panel">
+                    <h2>Research</h2>
+                    <p>X-ray astronomy data pipelines, specifically focusing on NuSTAR, RXTE, and NICER missions.</p>
+                </div>
+
+                <div id="cat-content" class="panel">
+                    <h2>My Cat</h2>
+                    <p>A faithful companion always keeping me company during late-night coding sessions.</p>
+                </div>
+            </div>
+        </section>
+        
+    </div>
+
+    <script>
+        // Use Javascript to link the invisible hitboxes to the image animations and click events
+        document.querySelectorAll('.hitbox').forEach(box => {
+            // Hover logic
+            box.addEventListener('mouseenter', () => {
+                document.getElementById(box.getAttribute('data-target')).classList.add('is-hovered');
+            });
+            box.addEventListener('mouseleave', () => {
+                document.getElementById(box.getAttribute('data-target')).classList.remove('is-hovered');
+            });
+            
+            // Click logic - Cinematic Isolation
+            box.addEventListener('click', () => {
+                // Hide all panels first
+                document.querySelectorAll('.panel').forEach(panel => {
+                    panel.classList.remove('active');
+                });
+                
+                const targetName = box.getAttribute('data-target');
+                
+                // Fade out all OTHER items on the desk
+                document.querySelectorAll('.interactive-item').forEach(item => {
+                    if (item.id !== targetName) {
+                        item.style.opacity = '0';
+                    } else {
+                        item.style.opacity = '1';
+                        // Keep the selected item slightly popped up
+                        item.style.transform = 'translateY(-8px) scale(1.03)';
+                    }
+                });
+                
+                // Show the specific panel content
+                const targetId = targetName + '-content';
+                const targetPanel = document.getElementById(targetId);
+                if (targetPanel) {
+                    targetPanel.classList.add('active');
+                }
+                
+                // Fade in the text overlay (which now has a transparent background)
+                document.getElementById('modal-overlay').classList.add('modal-active');
+            });
+        });
+        
+        // Close Modal Logic - Restore the scene
+        document.getElementById('close-btn').addEventListener('click', () => {
+            document.getElementById('modal-overlay').classList.remove('modal-active');
+            
+            // Restore all items back to normal visibility and position
+            document.querySelectorAll('.interactive-item').forEach(item => {
+                item.style.opacity = '1';
+                item.style.transform = ''; // Removes the inline style, reverting to CSS
+            });
+        });
+    </script>
+</body>
+</html>
