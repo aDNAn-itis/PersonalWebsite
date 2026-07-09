@@ -11,9 +11,6 @@
     <div class="scene-container">
         
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
-        <!-- About Scene Base Images -->
-        <img class="interactive-item about-scene-item" id="about-bench" src="assets/a/bench_transparent.png" alt="Bench">
-        <img class="interactive-item about-scene-item" id="about-boy" src="assets/a/boy_sittingonbench.png" alt="Boy on bench">
 
         <!-- Bike Scene Animation Frame -->
         <img class="bike-scene-item" id="bike-animator" src="assets/b/frame1.png" alt="Cycling Animation">
@@ -48,9 +45,7 @@
             <div class="hitbox" data-target="phone" style="top: 45.4%; left: 53.3%; width: 7.1%; height: 9.8%;"></div>
         </div>
         
-        <!-- Full-Screen Information Modal -->
-        <!-- About Scene Back Button (Since the text modal is hidden) -->
-        <button id="about-back-btn" class="close-btn about-back-btn">&larr; Back to Desk</button>
+
 
         <!-- Bike Scene Back Button -->
         <button id="bike-back-btn" class="close-btn bike-back-btn">&larr; Back to Desk</button>
@@ -126,19 +121,7 @@
                 
                 const targetName = box.getAttribute('data-target');
                 
-                // If the boy is clicked, trigger the full room swap and DO NOT show text
-                if (targetName === 'boy') {
-                    document.body.classList.add('about-active');
-                    
-                    // Clear any inline JS styles so CSS can fully take over
-                    document.querySelectorAll('.interactive-item').forEach(item => {
-                        item.style.opacity = '';
-                        item.style.transform = '';
-                    });
-                    
-                    // Exit early! No text panels, no cinematic isolation for this click
-                    return; 
-                }
+
 
                 // If the cycle is clicked, trigger the bike scene transition
                 if (targetName === 'cycle') {
@@ -181,11 +164,6 @@
             });
         });
         
-        // About Scene Back Button Logic
-        document.getElementById('about-back-btn').addEventListener('click', () => {
-            document.body.classList.remove('about-active');
-        });
-
         // Bike Scene Back Button Logic
         document.getElementById('bike-back-btn').addEventListener('click', () => {
             document.body.classList.remove('bike-active');
