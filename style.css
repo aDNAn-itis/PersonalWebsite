@@ -97,6 +97,71 @@ body {
     pointer-events: auto;
 }
 
+/* Hide about scene elements by default */
+.about-scene-item {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* Hide bike scene elements by default */
+.bike-scene-item {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+}
+
+/* Specific position for the bicycle frames so they sit on the road */
+#bike-animator {
+    position: absolute;
+    top: 10%;
+    /* initial off-screen start */
+    left: 100%; 
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transform: scale(1.1);
+    pointer-events: none;
+}
+
+@keyframes cycleAcross {
+    0% { left: 100%; }
+    100% { left: -100%; }
+}
+
+body.bike-active #bike-animator {
+    /* Moves across the screen in 12 seconds, linearly, forever */
+    animation: cycleAcross 12s linear infinite;
+}
+
+/* Make sure the hitboxes in the about scene are clickable! */
+body.about-active .hitbox.about-scene-item {
+    pointer-events: auto;
+}
+
+/* When the About scene is active, hide ALL items */
+body.about-active .interactive-item,
+body.about-active .hitbox {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Show the about scene items */
+body.about-active .about-scene-item {
+    opacity: 1 !important;
+}
+
+/* When the Bike scene is active, hide ALL desk and about items */
+body.bike-active .interactive-item,
+body.bike-active .hitbox {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Show the bike scene items */
+body.bike-active .bike-scene-item {
+    opacity: 1 !important;
+}
+
 .close-btn {
     position: absolute;
     top: 30px;
@@ -164,6 +229,56 @@ body {
 @keyframes fadeInText {
     from { opacity: 0; transform: scale(0.98); }
     to { opacity: 1; transform: scale(1); }
+}
+
+/* Swap background when the boy (About section) is clicked */
+body.about-active .scene-container::before {
+    background-image: url('assets/a/about_background.png');
+}
+
+/* Swap background when the cycle is clicked */
+body.bike-active .scene-container::before {
+    background-image: url('assets/b/road\ _background.png');
+}
+
+/* -------------------------------------
+   SCENE TRANSITION LOGIC
+---------------------------------------- */
+
+/* Dedicated Back Button for About Scene */
+.about-back-btn {
+    display: none;
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    z-index: 2000;
+}
+body.about-active .about-back-btn {
+    display: block;
+}
+
+/* Dedicated Back Button for Bike Scene */
+.bike-back-btn {
+    display: none;
+    position: absolute;
+    top: 40px;
+    left: 40px;
+    z-index: 2000;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 12px 24px;
+    border-radius: 30px;
+    color: #222;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    transition: all 0.5s ease;
+}
+body.bike-active .bike-back-btn {
+    display: block;
 }
 
 /* -------------------------------------

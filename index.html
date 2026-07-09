@@ -11,8 +11,16 @@
     <div class="scene-container">
         
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
+        <!-- About Scene Base Images -->
+        <img class="interactive-item about-scene-item" id="about-bench" src="assets/a/bench_transparent.png" alt="Bench">
+        <img class="interactive-item about-scene-item" id="about-boy" src="assets/a/boy_sittingonbench.png" alt="Boy on bench">
+
+        <!-- Bike Scene Animation Frame -->
+        <img class="bike-scene-item" id="bike-animator" src="assets/b/frame1.png" alt="Cycling Animation">
+        <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
-        <img class="interactive-item" id="bag" src="assets/a/bag_transparent.png" alt="Bag">
+        <!-- Moving the bag up slightly -->
+        <img class="interactive-item" id="bag" src="assets/a/bag_transparent.png" alt="Bag" style="top: -3%;">
         <!-- Shifting the books inward by overriding left position -->
         <img class="interactive-item" id="books" src="assets/a/books_transparent.png" alt="Books" style="left: 6%;">
         <img class="interactive-item" id="cat" src="assets/a/cat_transparent.png" alt="Cat">
@@ -24,8 +32,10 @@
         <!-- Invisible Hitboxes for accurate hovering -->
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
+            <div class="hitbox" data-target="cycle" style="top: 57.4%; left: 55.3%; width: 39.1%; height: 31.0%;"></div>
             <div class="hitbox" data-target="boy" style="top: 13.8%; left: 16.3%; width: 58.1%; height: 60.3%;"></div>
-            <div class="hitbox" data-target="bag" style="top: 43.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
+            <!-- Bag hitbox moved up by 3% to match the image -->
+            <div class="hitbox" data-target="bag" style="top: 40.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
             <div class="hitbox" data-target="headphone" style="top: 18.1%; left: 51.2%; width: 13.7%; height: 21.7%;"></div>
             <div class="hitbox" data-target="laptop" style="top: 61.8%; left: 39.4%; width: 13.2%; height: 15.8%;"></div>
             <div class="hitbox" data-target="cat" style="top: 47.2%; left: 22.3%; width: 14.4%; height: 11.2%;"></div>
@@ -39,6 +49,12 @@
         </div>
         
         <!-- Full-Screen Information Modal -->
+        <!-- About Scene Back Button (Since the text modal is hidden) -->
+        <button id="about-back-btn" class="close-btn about-back-btn">&larr; Back to Desk</button>
+
+        <!-- Bike Scene Back Button -->
+        <button id="bike-back-btn" class="close-btn bike-back-btn">&larr; Back to Desk</button>
+        
         <section class="info-panels-modal" id="modal-overlay">
             <button class="close-btn" id="close-btn">&larr; Back to Desk</button>
             
@@ -110,6 +126,38 @@
                 
                 const targetName = box.getAttribute('data-target');
                 
+                // If the boy is clicked, trigger the full room swap and DO NOT show text
+                if (targetName === 'boy') {
+                    document.body.classList.add('about-active');
+                    
+                    // Clear any inline JS styles so CSS can fully take over
+                    document.querySelectorAll('.interactive-item').forEach(item => {
+                        item.style.opacity = '';
+                        item.style.transform = '';
+                    });
+                    
+                    // Exit early! No text panels, no cinematic isolation for this click
+                    return; 
+                }
+
+                // If the cycle is clicked, trigger the bike scene transition
+                if (targetName === 'cycle') {
+                    document.body.classList.add('bike-active');
+                    
+                    // Clear any inline JS styles
+                    document.querySelectorAll('.interactive-item').forEach(item => {
+                        item.style.opacity = '';
+                        item.style.transform = '';
+                    });
+                    
+                    startBikeAnimation();
+                    return; 
+                }
+                
+                // Otherwise, normal cinematic isolation for desk objects (e.g. clicking the bag)
+                document.body.classList.remove('about-active');
+                document.body.classList.remove('bike-active');
+                
                 // Fade out all OTHER items on the desk
                 document.querySelectorAll('.interactive-item').forEach(item => {
                     if (item.id !== targetName) {
@@ -132,6 +180,50 @@
                 document.getElementById('modal-overlay').classList.add('modal-active');
             });
         });
+        
+        // About Scene Back Button Logic
+        document.getElementById('about-back-btn').addEventListener('click', () => {
+            document.body.classList.remove('about-active');
+        });
+
+        // Bike Scene Back Button Logic
+        document.getElementById('bike-back-btn').addEventListener('click', () => {
+            document.body.classList.remove('bike-active');
+            stopBikeAnimation();
+        });
+
+        // Stop-Motion Flipbook Animation Logic
+        const bikeFrames = [];
+        const totalFrames = 8;
+        // Preload frames to prevent flickering
+        for (let i = 1; i <= totalFrames; i++) {
+            const img = new Image();
+            img.src = `assets/b/frame${i}.png`;
+            bikeFrames.push(img);
+        }
+
+        let bikeAnimationInterval;
+        let currentFrame = 1;
+        const bikeAnimator = document.getElementById('bike-animator');
+        
+        function startBikeAnimation() {
+            clearInterval(bikeAnimationInterval);
+            currentFrame = 1;
+            bikeAnimator.src = bikeFrames[currentFrame - 1].src + "?v=3";
+            
+            // Loop at 450ms (~2.2 fps) for a much slower, relaxed stop-motion feel
+            bikeAnimationInterval = setInterval(() => {
+                currentFrame++;
+                if (currentFrame > totalFrames) {
+                    currentFrame = 1; // loop back to start
+                }
+                bikeAnimator.src = bikeFrames[currentFrame - 1].src + "?v=3";
+            }, 450);
+        }
+        
+        function stopBikeAnimation() {
+            clearInterval(bikeAnimationInterval);
+        }
         
         // Close Modal Logic - Restore the scene
         document.getElementById('close-btn').addEventListener('click', () => {
