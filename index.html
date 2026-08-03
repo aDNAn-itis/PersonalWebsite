@@ -13,7 +13,7 @@
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
 
         <!-- Bike Scene Animation Frame -->
-        <img class="bike-scene-item" id="bike-animator" src="assets/b/frame1.png" alt="Cycling Animation">
+        <img class="bike-scene-item" id="bike-animator" src="assets/scene2/frame1.png" alt="Cycling Animation">
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
         <!-- Moving the bag up slightly -->
@@ -123,17 +123,17 @@
                 
 
 
-                // If the cycle is clicked, trigger the bike scene transition
+                // If the cycle is clicked, trigger the bike ride directly!
                 if (targetName === 'cycle') {
-                    document.body.classList.add('bike-active');
-                    
                     // Clear any inline JS styles
                     document.querySelectorAll('.interactive-item').forEach(item => {
                         item.style.opacity = '';
                         item.style.transform = '';
                     });
                     
+                    document.body.classList.add('bike-active');
                     startBikeAnimation();
+                    
                     return; 
                 }
                 
@@ -170,13 +170,15 @@
             stopBikeAnimation();
         });
 
-        // Stop-Motion Flipbook Animation Logic
+        // ----------------------------------------------------
+        // Bike Stop-Motion Animation Logic (Scene 2)
+        // ----------------------------------------------------
         const bikeFrames = [];
         const totalFrames = 8;
         // Preload frames to prevent flickering
         for (let i = 1; i <= totalFrames; i++) {
             const img = new Image();
-            img.src = `assets/b/frame${i}.png`;
+            img.src = `assets/scene2/frame${i}.png`;
             bikeFrames.push(img);
         }
 

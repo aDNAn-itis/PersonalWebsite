@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Scene Studio Animatic</title>
+    <style>
+        body { background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .scene { position: relative; width: 1774px; height: 887px; max-width: 95vw; max-height: 95vh; aspect-ratio: 1774/887; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #333; }
+        .bg { position: absolute; width: 100%; height: 100%; object-fit: cover; }
+        .frame { position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+        .active { opacity: 1; }
+        
+        #controls { position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(0,0,0,0.85); padding: 15px; color: white; font-family: monospace; border-radius: 8px; border: 1px solid #444; }
+        button { padding: 5px 15px; cursor: pointer; background: #fff; border: none; font-weight: bold; border-radius: 4px; }
+        input { width: 50px; text-align: center; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h3 style="margin: 0 0 10px 0; color: #4CAF50;">Animatic Previewer</h3>
+        <label>Speed (FPS): <input type="number" id="fps" value="6"></label>
+        <button onclick="updateFPS()">Update</button>
+    </div>
+    
+    <div class="scene">
+        <img class="bg" src="../../assets/scene2/road_background.png">
+        <div id="frames-container"></div>
+    </div>
+
+    <script>
+        const frames = ['aligned_frames/frame1.png', 'aligned_frames/frame2.png', 'aligned_frames/frame3.png', 'aligned_frames/frame4.png', 'aligned_frames/frame5.png', 'aligned_frames/frame6.png', 'aligned_frames/frame7.png', 'aligned_frames/frame8.png'];
+        const container = document.getElementById('frames-container');
+        
+        frames.forEach((src, index) => {
+            const img = document.createElement('img');
+            img.src = src + '?v=' + Math.random();
+            img.className = 'frame' + (index === 0 ? ' active' : '');
+            img.id = 'frame-' + index;
+            container.appendChild(img);
+        });
+
+        let currentFrame = 0;
+        let intervalTime = 1000 / 6;
+        let interval;
+
+        function play() {
+            clearInterval(interval);
+            interval = setInterval(() => {
+                document.getElementById('frame-' + currentFrame).classList.remove('active');
+                currentFrame = (currentFrame + 1) % frames.length;
+                document.getElementById('frame-' + currentFrame).classList.add('active');
+            }, intervalTime);
+        }
+
+        function updateFPS() {
+            const fps = document.getElementById('fps').value;
+            intervalTime = 1000 / fps;
+            play();
+        }
+
+        play();
+    </script>
+</body>
+</html>
