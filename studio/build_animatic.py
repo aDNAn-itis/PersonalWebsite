@@ -1,47 +1,67 @@
 import os
 import glob
+import re
 from PIL import Image
 
 # --- STUDIO CONFIGURATION ---
 TARGET_W, TARGET_H = 1774, 887
 
-# This is the scale factor applied to the ENTIRE raw image.
-# It ensures every frame is scaled identically, preserving alignment.
-# We set this to 1.35 to perfectly match the size the cycle had in your website!
-SCALE_FACTOR = 1.35  
+# Default fallbacks (used if a frame is not in FRAME_CONFIGS)
+OFFSET_X = -450
+OFFSET_Y = -40
+ROTATION_ANGLE = -10  # Negative numbers rotate clockwise
+SCALE_FACTOR = 0.5
+
+# Per-frame precise alignments
+FRAME_CONFIGS = {
+    "frame0.png": {"offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
+    "frame1.png": {"offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
+    "frame2.png": {"offset_x": -450, "offset_y": -40, "rotation": -10, "scale": 0.5}
+}
 
 input_dir = 'raw_frames'
 output_dir = 'aligned_frames'
-background_img = '../../assets/scene2/road_background.png'
+background_img = '../assets/scene_bedroom/bedroom_background.png'
 
 os.makedirs(output_dir, exist_ok=True)
 
-files = sorted(glob.glob(os.path.join(input_dir, '*.png')))
-if not files:
-    print(f"No PNG files found in {input_dir}/.")
-    exit()
+def extract_number(f):
+    s = re.search(r'\d+', os.path.basename(f))
+    return int(s.group()) if s else 0
 
-print(f"Found {len(files)} raw frames. Building Animatic without dynamic cropping...")
+files = sorted(glob.glob(os.path.join(input_dir, '*.png')), key=extract_number)
+if not files:
+    print(f"No PNG frames found in {input_dir}/. Generating Empty Room Preview...")
+else:
+    print(f"Found {len(files)} raw frames. Building Animatic without dynamic cropping...")
 
 for file in files:
     filename = os.path.basename(file)
+    
+    # Get config for this frame
+    config = FRAME_CONFIGS.get(filename, {})
+    frame_scale = config.get("scale", SCALE_FACTOR)
+    frame_rot = config.get("rotation", ROTATION_ANGLE)
+    frame_ox = config.get("offset_x", OFFSET_X)
+    frame_oy = config.get("offset_y", OFFSET_Y)
+    
     img = Image.open(file).convert('RGBA')
     
-    # 1. Scale the ENTIRE image uniformly. 
-    # We DO NOT crop the bounding box, because cropping dynamically changes 
-    # the center of mass in every frame and destroys the artist's alignment!
-    new_w = int(img.width * SCALE_FACTOR)
-    new_h = int(img.height * SCALE_FACTOR)
+    # 1. Resize and Rotate Image
+    new_w = int(img.width * frame_scale)
+    new_h = int(img.height * frame_scale)
     
     resized_img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
     
-    # 2. Paste into Golden Canvas (Dead Center)
+    # Apply rotation
+    if frame_rot != 0:
+        resized_img = resized_img.rotate(frame_rot, expand=True, resample=Image.Resampling.BICUBIC)
+        new_w, new_h = resized_img.size
+        
+    # 2. Paste into Golden Canvas (Dead Center + Offsets)
     canvas = Image.new('RGBA', (TARGET_W, TARGET_H), (0, 0, 0, 0))
-    paste_x = (TARGET_W - new_w) // 2
-    
-    # Push it down slightly to sit on the road (can adjust this Y offset)
-    # Since we scaled it up by 1.35, we adjust the paste_y so the wheels hit the road
-    paste_y = (TARGET_H - new_h) // 2 + 100 
+    paste_x = (TARGET_W - new_w) // 2 + frame_ox
+    paste_y = (TARGET_H - new_h) // 2 + frame_oy
     
     canvas.paste(resized_img, (paste_x, paste_y), resized_img)
     canvas.save(os.path.join(output_dir, filename))
