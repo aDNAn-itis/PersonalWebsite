@@ -1,22 +1,36 @@
 import os
 import glob
 import re
+import numpy as np
 from PIL import Image
 
 # --- STUDIO CONFIGURATION ---
 TARGET_W, TARGET_H = 1774, 887
 
-# Default fallbacks (used if a frame is not in FRAME_CONFIGS)
-OFFSET_X = -450
-OFFSET_Y = -40
-ROTATION_ANGLE = -10  # Negative numbers rotate clockwise
-SCALE_FACTOR = 0.5
+# Dynamic Alignment Settings
+DEFAULT_ANCHOR_X = 437
+DEFAULT_ANCHOR_Y = 660
+DEFAULT_TARGET_HEIGHT = 480  # Slightly smaller to match frame 12 proportions 
 
-# Per-frame precise alignments
 FRAME_CONFIGS = {
-    "frame0.png": {"offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
-    "frame1.png": {"offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
-    "frame2.png": {"offset_x": -450, "offset_y": -40, "rotation": -10, "scale": 0.5}
+    # --- NON-DYNAMIC: Tumbling sequence (falling into bed) ---
+    # We disable dynamic cropping here so it uses your EXACT original manual offsets!
+    "frame0.png": {"dynamic": False, "offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
+    "frame1.png": {"dynamic": False, "offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
+    "frame2.png": {"dynamic": False, "offset_x": -450, "offset_y": -40, "rotation": -10, "scale": 0.5},
+    
+    # --- DYNAMIC: Sitting frames ---
+    # Frame 13 was generated too big by ChatGPT, we scale it down custom here:
+    "frame13.png": {"dynamic": True, "target_height": 450},
+    
+    # --- DYNAMIC: Stand-up sequence ---
+    # Since he is standing, his bounding box includes his legs!
+    # If we scaled him to 480px, he'd be a tiny dwarf. We increase target_height to 700px
+    # so his torso size matches the sitting frames.
+    'frame14.png': {'dynamic': True, 'shift_x': 270, 'shift_y': 50, 'target_height': 700},
+    'frame15.png': {'dynamic': True, 'shift_x': 270, 'shift_y': 50, 'target_height': 700},
+    'frame16.png': {'dynamic': True, 'shift_x': 270, 'shift_y': 50, 'target_height': 700},
+    'frame17.png': {'dynamic': True, 'shift_x': 270, 'shift_y': 50, 'target_height': 700}, 
 }
 
 input_dir = 'raw_frames'
@@ -33,41 +47,88 @@ files = sorted(glob.glob(os.path.join(input_dir, '*.png')), key=extract_number)
 if not files:
     print(f"No PNG frames found in {input_dir}/. Generating Empty Room Preview...")
 else:
-    print(f"Found {len(files)} raw frames. Building Animatic without dynamic cropping...")
+    print(f"Found {len(files)} raw frames. Building Animatic with HYBRID PIPELINE...")
+
+def get_content_bbox(img_rgba):
+    """Finds the bounding box of the non-transparent character."""
+    data = np.array(img_rgba)
+    alpha = data[:, :, 3]
+    rgb = data[:, :, :3]
+    
+    is_not_transparent = alpha > 10
+    is_not_white = (rgb[:, :, 0] < 240) | (rgb[:, :, 1] < 240) | (rgb[:, :, 2] < 240)
+    mask = is_not_transparent & is_not_white
+    
+    y_coords, x_coords = np.where(mask)
+    if len(x_coords) > 0:
+        return (np.min(x_coords), np.min(y_coords), np.max(x_coords), np.max(y_coords))
+    return None
 
 for file in files:
     filename = os.path.basename(file)
     
-    # Get config for this frame
+    # Load configs
     config = FRAME_CONFIGS.get(filename, {})
-    frame_scale = config.get("scale", SCALE_FACTOR)
-    frame_rot = config.get("rotation", ROTATION_ANGLE)
-    frame_ox = config.get("offset_x", OFFSET_X)
-    frame_oy = config.get("offset_y", OFFSET_Y)
+    is_dynamic = config.get("dynamic", True) # Default to dynamic
     
     img = Image.open(file).convert('RGBA')
-    
-    # 1. Resize and Rotate Image
-    new_w = int(img.width * frame_scale)
-    new_h = int(img.height * frame_scale)
-    
-    resized_img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-    
-    # Apply rotation
-    if frame_rot != 0:
-        resized_img = resized_img.rotate(frame_rot, expand=True, resample=Image.Resampling.BICUBIC)
-        new_w, new_h = resized_img.size
-        
-    # 2. Paste into Golden Canvas (Dead Center + Offsets)
     canvas = Image.new('RGBA', (TARGET_W, TARGET_H), (0, 0, 0, 0))
-    paste_x = (TARGET_W - new_w) // 2 + frame_ox
-    paste_y = (TARGET_H - new_h) // 2 + frame_oy
     
-    canvas.paste(resized_img, (paste_x, paste_y), resized_img)
-    canvas.save(os.path.join(output_dir, filename))
-    print(f"Processed {filename}: Preserved original canvas alignment.")
+    if not is_dynamic:
+        # --- OLD LEGACY MODE (For Tumbling Frames) ---
+        frame_scale = config.get("scale", 0.5)
+        frame_rot = config.get("rotation", 0)
+        frame_ox = config.get("offset_x", -450)
+        frame_oy = config.get("offset_y", -40)
+        
+        new_w = int(img.width * frame_scale)
+        new_h = int(img.height * frame_scale)
+        resized_img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        
+        if frame_rot != 0:
+            resized_img = resized_img.rotate(frame_rot, expand=True, resample=Image.Resampling.BICUBIC)
+            new_w, new_h = resized_img.size
+            
+        paste_x = (TARGET_W - new_w) // 2 + frame_ox
+        paste_y = (TARGET_H - new_h) // 2 + frame_oy
+        canvas.paste(resized_img, (paste_x, paste_y), resized_img)
+        canvas.save(os.path.join(output_dir, filename))
+        print(f"Processed {filename}: [LEGACY] Placed with offset ({frame_ox}, {frame_oy})")
+        
+    else:
+        # --- NEW DYNAMIC MODE (For Sitting and Standing Frames) ---
+        shift_x = config.get("shift_x", 0)
+        shift_y = config.get("shift_y", 0)
+        frame_rot = config.get("rotation", 0)
+        target_height = config.get("target_height", DEFAULT_TARGET_HEIGHT)
+        
+        anchor_x = DEFAULT_ANCHOR_X + shift_x
+        anchor_y = DEFAULT_ANCHOR_Y + shift_y
+        
+        bbox = get_content_bbox(img)
+        if bbox:
+            left, top, right, bottom = bbox
+            img = img.crop((left, top, right, bottom))
+        
+        current_height = img.height
+        scale_factor = target_height / current_height if current_height > 0 else 1.0
+        new_w = int(img.width * scale_factor)
+        new_h = int(img.height * scale_factor)
+        
+        resized_img = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        
+        if frame_rot != 0:
+            resized_img = resized_img.rotate(frame_rot, expand=True, resample=Image.Resampling.BICUBIC)
+            new_w, new_h = resized_img.size
+            
+        paste_x = int(anchor_x - (new_w / 2))
+        paste_y = int(anchor_y - new_h)
+        
+        canvas.paste(resized_img, (paste_x, paste_y), resized_img)
+        canvas.save(os.path.join(output_dir, filename))
+        print(f"Processed {filename}: [DYNAMIC] Normalized height to {target_height}px, Pinned to ({anchor_x}, {anchor_y})")
 
-# Generate the Instant Web Previewer
+# Generate Web Previewer
 html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -137,4 +198,4 @@ html_content = f"""
 with open('preview.html', 'w') as f:
     f.write(html_content)
 
-print(f"\\nSUCCESS! {len(files)} frames aligned.")
+print(f"\\nSUCCESS! {len(files)} frames aligned with HYBRID PIPELINE.")

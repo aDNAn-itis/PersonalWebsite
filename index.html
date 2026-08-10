@@ -171,6 +171,50 @@
         });
 
         // ----------------------------------------------------
+        // Bedroom Stop-Motion Animation Logic (Scene 1)
+        // ----------------------------------------------------
+        const bedroomFrames = [];
+        const totalBedroomFrames = 18; // frame0 to frame17
+        for (let i = 0; i < totalBedroomFrames; i++) {
+            const img = new Image();
+            img.src = `assets/scene1/frame${i}.png`;
+            bedroomFrames.push(img);
+        }
+
+        let bedroomAnimationInterval;
+        let currentBedroomFrame = 0;
+        const bedroomAnimator = document.getElementById('bedroom-animator');
+        
+        function startBedroomAnimation() {
+            clearInterval(bedroomAnimationInterval);
+            currentBedroomFrame = 0;
+            bedroomAnimator.src = bedroomFrames[currentBedroomFrame].src + "?v=4";
+            
+            // Loop at 1000ms (1 fps) as requested
+            bedroomAnimationInterval = setInterval(() => {
+                currentBedroomFrame++;
+                if (currentBedroomFrame >= totalBedroomFrames) {
+                    currentBedroomFrame = 0; // loop back to start
+                }
+                bedroomAnimator.src = bedroomFrames[currentBedroomFrame].src + "?v=4";
+            }, 1000);
+        }
+        
+        function stopBedroomAnimation() {
+            clearInterval(bedroomAnimationInterval);
+        }
+
+        // Bedroom Scene Skip Button Logic
+        document.getElementById('bedroom-back-btn').addEventListener('click', () => {
+            document.body.classList.remove('bedroom-active');
+            stopBedroomAnimation();
+        });
+
+        // Start Bedroom Scene by default when page loads!
+        document.body.classList.add('bedroom-active');
+        startBedroomAnimation();
+
+        // ----------------------------------------------------
         // Bike Stop-Motion Animation Logic (Scene 2)
         // ----------------------------------------------------
         const bikeFrames = [];
