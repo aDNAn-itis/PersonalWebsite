@@ -1,0 +1,41 @@
+{
+    "TARGET_AREA": 75000,
+    "DEFAULT_COM_X": 427,
+    "DEFAULT_COM_Y": 390,
+    "FRAME_CONFIGS": {
+        "frame0.png": {
+            "dynamic": false,
+            "offset_x": -420,
+            "offset_y": 10,
+            "rotation": -50,
+            "scale": 0.5
+        },
+        "frame1.png": {
+            "dynamic": false,
+            "offset_x": -420,
+            "offset_y": 10,
+            "rotation": -50,
+            "scale": 0.5
+        },
+        "frame14.png": {
+            "dynamic": true,
+            "com_x": 650,
+            "com_y": 390
+        },
+        "frame15.png": {
+            "dynamic": true,
+            "com_x": 650,
+            "com_y": 390
+        },
+        "frame16.png": {
+            "dynamic": true,
+            "com_x": 650,
+            "com_y": 390
+        },
+        "frame17.png": {
+            "dynamic": true,
+            "com_x": 650,
+            "com_y": 390
+        }
+    }
+}
