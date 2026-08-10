@@ -8,20 +8,25 @@ from PIL import Image
 TARGET_W, TARGET_H = 1774, 887
 
 # Dynamic Alignment Settings
-DEFAULT_ANCHOR_X = 437
-DEFAULT_ANCHOR_Y = 660
-DEFAULT_TARGET_HEIGHT = 480  # Slightly smaller to match frame 12 proportions 
+DEFAULT_ANCHOR_X = 380  # Shifted left (-x) so the boy is fully on the bed
+DEFAULT_ANCHOR_Y = 675  # Shifted down slightly so his hand rests firmly on the bed
+DEFAULT_TARGET_HEIGHT = 450  # Scaled down sitting sequence as requested
 
 FRAME_CONFIGS = {
     # --- NON-DYNAMIC: Tumbling sequence (falling into bed) ---
     # We disable dynamic cropping here so it uses your EXACT original manual offsets!
     "frame0.png": {"dynamic": False, "offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
     "frame1.png": {"dynamic": False, "offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
-    "frame2.png": {"dynamic": False, "offset_x": -450, "offset_y": -40, "rotation": -10, "scale": 0.5},
     
     # --- DYNAMIC: Sitting frames ---
+    # Smoothing out the AI inconsistencies from frames 2 to 5 (scaled around the new 450 base):
+    "frame2.png": {"dynamic": True, "target_height": 450},
+    "frame3.png": {"dynamic": True, "target_height": 460},
+    "frame4.png": {"dynamic": True, "target_height": 440},
+    "frame5.png": {"dynamic": True, "target_height": 445},
+    
     # Frame 13 was generated too big by ChatGPT, we scale it down custom here:
-    "frame13.png": {"dynamic": True, "target_height": 450},
+    "frame13.png": {"dynamic": True, "target_height": 420},
     
     # --- DYNAMIC: Stand-up sequence ---
     # Since he is standing, his bounding box includes his legs!
