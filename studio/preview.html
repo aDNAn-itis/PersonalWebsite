@@ -57,6 +57,13 @@
         <p style="font-size: 13px; color: #aaa; margin-top: 15px;">Drag the character, then click save! The Python server will rebuild the images automatically.</p>
         
         <button id="save-btn" onclick="saveToServer()">Save & Rebuild Animatic</button>
+
+        <hr style="border-color: #444; margin: 20px 0;">
+        
+        <h3 style="color: #008CBA;">🧠 ChatGPT Memory</h3>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 5px;">Paste your exact character prompt here so you never lose it!</p>
+        <textarea id="prompt-memory" style="width: 100%; height: 80px; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px; font-size: 12px; box-sizing: border-box;" placeholder="e.g., Anime boy with black hair..."></textarea>
+        <button id="save-prompt-btn" style="width: 100%; background: #555; font-size: 14px; margin-top: 5px;" onclick="savePrompt()">💾 Save Master Prompt</button>
     </div>
     
     <div class="scene">
@@ -65,12 +72,12 @@
     </div>
 
     <script>
-        const frames = ['aligned_frames/frame0.png', 'aligned_frames/frame1.png', 'aligned_frames/frame2.png', 'aligned_frames/frame3.png', 'aligned_frames/frame4.png', 'aligned_frames/frame5.png', 'aligned_frames/frame6.png', 'aligned_frames/frame7.png', 'aligned_frames/frame8.png', 'aligned_frames/frame9.png', 'aligned_frames/frame10.png', 'aligned_frames/frame11.png', 'aligned_frames/frame12.png', 'aligned_frames/frame13.png', 'aligned_frames/frame14.png', 'aligned_frames/frame15.png', 'aligned_frames/frame16.png', 'aligned_frames/frame17.png'];
-        const frameNames = ['frame0.png', 'frame1.png', 'frame2.png', 'frame3.png', 'frame4.png', 'frame5.png', 'frame6.png', 'frame7.png', 'frame8.png', 'frame9.png', 'frame10.png', 'frame11.png', 'frame12.png', 'frame13.png', 'frame14.png', 'frame15.png', 'frame16.png', 'frame17.png'];
+        const frames = ['aligned_frames/frame0.png', 'aligned_frames/frame1.png', 'aligned_frames/frame2.png', 'aligned_frames/frame3.png', 'aligned_frames/frame4.png', 'aligned_frames/frame5.png', 'aligned_frames/frame6.png', 'aligned_frames/frame7.png', 'aligned_frames/frame8.png', 'aligned_frames/frame9.png', 'aligned_frames/frame10.png', 'aligned_frames/frame11.png', 'aligned_frames/frame12.png', 'aligned_frames/frame13.png', 'aligned_frames/frame14.png', 'aligned_frames/frame15.png', 'aligned_frames/frame16.png', 'aligned_frames/frame17.png', 'aligned_frames/frame18.png', 'aligned_frames/frame19.png', 'aligned_frames/frame20.png', 'aligned_frames/frame21.png', 'aligned_frames/frame22.png', 'aligned_frames/frame23.png', 'aligned_frames/frame24.png', 'aligned_frames/frame25.png', 'aligned_frames/frame26.png', 'aligned_frames/frame27.png', 'aligned_frames/frame28.png', 'aligned_frames/frame29.png', 'aligned_frames/frame30.png', 'aligned_frames/frame31.png', 'aligned_frames/frame32.png', 'aligned_frames/frame33.png', 'aligned_frames/frame34.png', 'aligned_frames/frame35.png', 'aligned_frames/frame36.png', 'aligned_frames/frame37.png', 'aligned_frames/frame38.png', 'aligned_frames/frame39.png'];
+        const frameNames = ['frame0.png', 'frame1.png', 'frame2.png', 'frame3.png', 'frame4.png', 'frame5.png', 'frame6.png', 'frame7.png', 'frame8.png', 'frame9.png', 'frame10.png', 'frame11.png', 'frame12.png', 'frame13.png', 'frame14.png', 'frame15.png', 'frame16.png', 'frame17.png', 'frame18.png', 'frame19.png', 'frame20.png', 'frame21.png', 'frame22.png', 'frame23.png', 'frame24.png', 'frame25.png', 'frame26.png', 'frame27.png', 'frame28.png', 'frame29.png', 'frame30.png', 'frame31.png', 'frame32.png', 'frame33.png', 'frame34.png', 'frame35.png', 'frame36.png', 'frame37.png', 'frame38.png', 'frame39.png'];
         const container = document.getElementById('frames-container');
         
-        const BASE_COM_X = 427;
-        const BASE_COM_Y = 390;
+        const BASE_COM_X = 1053;
+        const BASE_COM_Y = 180;
         
         let globalDx = 0;
         let globalDy = 0;
@@ -163,8 +170,8 @@
         window.addEventListener('mouseup', () => isDragging = false);
 
         function saveToServer() {
-            const newComX = BASE_COM_X - globalDx;
-            const newComY = BASE_COM_Y - globalDy;
+            const newComX = BASE_COM_X + globalDx;
+            const newComY = BASE_COM_Y + globalDy;
             
             let payload = {
                 "DEFAULT_COM_X": newComX,
@@ -175,8 +182,8 @@
             for (let fName in frameOffsets) {
                 if (frameOffsets[fName].x !== 0 || frameOffsets[fName].y !== 0) {
                     payload.FRAME_CONFIGS[fName] = {
-                        "com_x": newComX - frameOffsets[fName].x,
-                        "com_y": newComY - frameOffsets[fName].y
+                        "com_x": newComX + frameOffsets[fName].x,
+                        "com_y": newComY + frameOffsets[fName].y
                     };
                 }
             }
@@ -194,6 +201,29 @@
                 document.getElementById('save-btn').innerText = "Save & Rebuild Animatic";
             });
         }
+
+        function savePrompt() {
+            const memory = document.getElementById('prompt-memory').value;
+            document.getElementById('save-prompt-btn').innerText = "Saving...";
+            
+            fetch('/save_prompt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: memory })
+            }).then(res => res.json()).then(data => {
+                document.getElementById('save-prompt-btn').innerText = "✅ Saved!";
+                setTimeout(() => document.getElementById('save-prompt-btn').innerText = "💾 Save Master Prompt", 2000);
+            }).catch(err => {
+                alert("Error saving: " + err);
+                document.getElementById('save-prompt-btn').innerText = "💾 Save Master Prompt";
+            });
+        }
+        
+        fetch('/get_prompt').then(res => res.json()).then(data => {
+            if (data.prompt) {
+                document.getElementById('prompt-memory').value = data.prompt;
+            }
+        }).catch(e => console.log("No saved prompt yet."));
 
         // Start playing
         interval = setInterval(playLoop, 1000 / document.getElementById('fps').value);

@@ -15,14 +15,7 @@ if not os.path.exists(config_file):
         "TARGET_AREA": 75000,
         "DEFAULT_COM_X": 380,
         "DEFAULT_COM_Y": 480,
-        "FRAME_CONFIGS": {
-            "frame0.png": {"dynamic": False, "offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
-            "frame1.png": {"dynamic": False, "offset_x": -420, "offset_y": 10, "rotation": -50, "scale": 0.5},
-            "frame14.png": {"dynamic": True, "com_x": 650, "com_y": 390},
-            "frame15.png": {"dynamic": True, "com_x": 650, "com_y": 390},
-            "frame16.png": {"dynamic": True, "com_x": 650, "com_y": 390},
-            "frame17.png": {"dynamic": True, "com_x": 650, "com_y": 390}
-        }
+        "FRAME_CONFIGS": {}
     }
     with open(config_file, 'w') as f:
         json.dump(default_config, f, indent=4)
@@ -179,6 +172,13 @@ html_content = f"""
         <p style="font-size: 13px; color: #aaa; margin-top: 15px;">Drag the character, then click save! The Python server will rebuild the images automatically.</p>
         
         <button id="save-btn" onclick="saveToServer()">Save & Rebuild Animatic</button>
+
+        <hr style="border-color: #444; margin: 20px 0;">
+        
+        <h3 style="color: #008CBA;">🧠 ChatGPT Memory</h3>
+        <p style="font-size: 12px; color: #aaa; margin-bottom: 5px;">Paste your exact character prompt here so you never lose it!</p>
+        <textarea id="prompt-memory" style="width: 100%; height: 80px; background: #222; color: #fff; border: 1px solid #555; border-radius: 4px; padding: 5px; font-size: 12px; box-sizing: border-box;" placeholder="e.g., Anime boy with black hair..."></textarea>
+        <button id="save-prompt-btn" style="width: 100%; background: #555; font-size: 14px; margin-top: 5px;" onclick="savePrompt()">💾 Save Master Prompt</button>
     </div>
     
     <div class="scene">
@@ -285,8 +285,8 @@ html_content = f"""
         window.addEventListener('mouseup', () => isDragging = false);
 
         function saveToServer() {{
-            const newComX = BASE_COM_X - globalDx;
-            const newComY = BASE_COM_Y - globalDy;
+            const newComX = BASE_COM_X + globalDx;
+            const newComY = BASE_COM_Y + globalDy;
             
             let payload = {{
                 "DEFAULT_COM_X": newComX,
@@ -297,8 +297,8 @@ html_content = f"""
             for (let fName in frameOffsets) {{
                 if (frameOffsets[fName].x !== 0 || frameOffsets[fName].y !== 0) {{
                     payload.FRAME_CONFIGS[fName] = {{
-                        "com_x": newComX - frameOffsets[fName].x,
-                        "com_y": newComY - frameOffsets[fName].y
+                        "com_x": newComX + frameOffsets[fName].x,
+                        "com_y": newComY + frameOffsets[fName].y
                     }};
                 }}
             }}
@@ -317,6 +317,29 @@ html_content = f"""
             }});
         }}
 
+        function savePrompt() {{
+            const memory = document.getElementById('prompt-memory').value;
+            document.getElementById('save-prompt-btn').innerText = "Saving...";
+            
+            fetch('/save_prompt', {{
+                method: 'POST',
+                headers: {{ 'Content-Type': 'application/json' }},
+                body: JSON.stringify({{ prompt: memory }})
+            }}).then(res => res.json()).then(data => {{
+                document.getElementById('save-prompt-btn').innerText = "✅ Saved!";
+                setTimeout(() => document.getElementById('save-prompt-btn').innerText = "💾 Save Master Prompt", 2000);
+            }}).catch(err => {{
+                alert("Error saving: " + err);
+                document.getElementById('save-prompt-btn').innerText = "💾 Save Master Prompt";
+            }});
+        }}
+        
+        fetch('/get_prompt').then(res => res.json()).then(data => {{
+            if (data.prompt) {{
+                document.getElementById('prompt-memory').value = data.prompt;
+            }}
+        }}).catch(e => console.log("No saved prompt yet."));
+
         // Start playing
         interval = setInterval(playLoop, 1000 / document.getElementById('fps').value);
     </script>
@@ -324,7 +347,7 @@ html_content = f"""
 </html>
 """
 
-with open('preview.html', 'w') as f:
+with open('preview.html', 'w', encoding='utf-8') as f:
     f.write(html_content)
 
 print(f"\\nSUCCESS! 18 frames perfectly aligned using Area-Scaling! Visual Editor is ready.")
