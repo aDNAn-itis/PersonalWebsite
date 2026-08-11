@@ -1,0 +1,30 @@
+[
+    {
+        "id": "asset_1",
+        "src": "assets/smiths_poster.png",
+        "x": 1170.3,
+        "y": 487.5,
+        "scale": 0.2
+    },
+    {
+        "id": "asset_2",
+        "src": "assets/shin_chan_mat.png",
+        "x": 801.3,
+        "y": 762.5,
+        "scale": 0.4
+    },
+    {
+        "id": "asset_3",
+        "src": "assets/pikachu_squishy.png",
+        "x": 1247.3,
+        "y": 733.5,
+        "scale": 0.3
+    },
+    {
+        "id": "asset_4",
+        "src": "assets/shero_squishy.png",
+        "x": 1066.3,
+        "y": 710.5,
+        "scale": 0.3
+    }
+]

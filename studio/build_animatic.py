@@ -113,6 +113,16 @@ for file in files:
             print(f"Processed {filename}: FAILED (Empty Mask)")
 
 # Generate Web Previewer with Visual Editor
+assets_html = ""
+if os.path.exists('scene_assets.json'):
+    try:
+        with open('scene_assets.json', 'r') as f:
+            assets = json.load(f)
+        for a in assets:
+            assets_html += f'<img src="{a["src"]}?v={{Math.random()}}" class="placed-asset" data-src="{a["src"]}" data-id="{a["id"]}" data-x="{a["x"]}" data-y="{a["y"]}" data-scale="{a["scale"]}" style="position: absolute; left: {a["x"]}px; top: {a["y"]}px; transform: translate(-50%, -50%) scale({a["scale"]}); z-index: 10; cursor: move; border: 1px solid transparent; padding: 2px;">\n'
+    except Exception as e:
+        print("Error loading assets:", e)
+
 html_content = f"""
 <!DOCTYPE html>
 <html>
@@ -184,6 +194,11 @@ html_content = f"""
     <div class="scene">
         <img class="bg" src="{background_img}">
         <div id="frames-container"></div>
+        {assets_html}
+        <div id="ai-prompt-box" style="display: none; position: absolute; z-index: 1000; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+            <input type="text" id="ai-prompt-input" style="background: rgba(0,0,0,0.5); color: white; border: 1px solid #555; border-radius: 4px; padding: 8px; width: 200px; outline: none;" placeholder="Generate here...">
+            <button onclick="submitAiPrompt()" style="padding: 8px 12px; margin-left: 5px; background: #008CBA; border-radius: 4px; border: none; color: white; cursor: pointer; font-weight: bold;">Gen</button>
+        </div>
     </div>
 
     <script>
@@ -267,6 +282,15 @@ html_content = f"""
         }});
 
         window.addEventListener('mousemove', (e) => {{
+            if (activeAsset) {{
+                const newX = e.clientX - assetStartX;
+                const newY = e.clientY - assetStartY;
+                activeAsset.dataset.x = newX;
+                activeAsset.dataset.y = newY;
+                activeAsset.style.left = newX + 'px';
+                activeAsset.style.top = newY + 'px';
+                return;
+            }}
             if (!isDragging) return;
             const mode = document.getElementById('drag-mode').value;
             const deltaX = e.clientX - startMouseX;
@@ -282,16 +306,113 @@ html_content = f"""
             updateTransform();
         }});
 
-        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mouseup', () => {{
+            isDragging = false;
+            activeAsset = null;
+        }});
+
+        let activeAsset = null;
+        let assetStartX = 0;
+        let assetStartY = 0;
+
+        document.querySelectorAll('.placed-asset').forEach(asset => {{
+            asset.addEventListener('mousedown', (e) => {{
+                if (e.button === 2) return;
+                e.stopPropagation(); // Prevent global drag
+                activeAsset = asset;
+                asset.style.border = "1px dashed #008CBA";
+                assetStartX = e.clientX - parseFloat(asset.dataset.x);
+                assetStartY = e.clientY - parseFloat(asset.dataset.y);
+            }});
+            
+            asset.addEventListener('wheel', (e) => {{
+                e.preventDefault();
+                let scale = parseFloat(asset.dataset.scale);
+                scale += e.deltaY * -0.001;
+                scale = Math.max(0.05, Math.min(scale, 5)); // Limit zoom
+                asset.dataset.scale = scale;
+                asset.style.transform = `translate(-50%, -50%) scale(${{scale}})`;
+            }});
+            
+            window.addEventListener('mouseup', (e) => {{
+                asset.style.border = "1px solid transparent";
+            }});
+        }});
+
+        let rightClickX = 0;
+        let rightClickY = 0;
+        
+        container.addEventListener('contextmenu', (e) => {{
+            e.preventDefault();
+            const box = document.getElementById('ai-prompt-box');
+            box.style.display = 'block';
+            
+            const rect = document.querySelector('.scene').getBoundingClientRect();
+            // Store coordinates relative to the scene
+            rightClickX = e.clientX - rect.left;
+            rightClickY = e.clientY - rect.top;
+            
+            box.style.left = rightClickX + 'px';
+            box.style.top = rightClickY + 'px';
+            document.getElementById('ai-prompt-input').focus();
+        }});
+        
+        window.addEventListener('click', (e) => {{
+            if (e.button !== 2 && !e.target.closest('#ai-prompt-box')) {{
+                document.getElementById('ai-prompt-box').style.display = 'none';
+            }}
+        }});
+        
+        function submitAiPrompt() {{
+            const prompt = document.getElementById('ai-prompt-input').value;
+            if (!prompt) return;
+            
+            const btn = document.querySelector('#ai-prompt-box button');
+            btn.innerHTML = 'Generating... ⏳';
+            btn.disabled = true;
+            document.getElementById('ai-prompt-input').style.display = 'none';
+            
+            fetch('/generate_asset', {{
+                method: 'POST',
+                headers: {{'Content-Type': 'application/json'}},
+                body: JSON.stringify({{ prompt: prompt, x: rightClickX, y: rightClickY }})
+            }}).then(r => r.json()).then(d => {{
+                console.log("Request sent!", d);
+                pollStatus();
+            }});
+        }}
+
+        function pollStatus() {{
+            const interval = setInterval(() => {{
+                fetch('/check_status').then(r => r.json()).then(d => {{
+                    if (d.status === 'done') {{
+                        clearInterval(interval);
+                        window.location.reload();
+                    }}
+                }});
+            }}, 2000);
+        }}
 
         function saveToServer() {{
             const newComX = BASE_COM_X + globalDx;
             const newComY = BASE_COM_Y + globalDy;
             
+            let assetsArray = [];
+            document.querySelectorAll('.placed-asset').forEach(a => {{
+                assetsArray.push({{
+                    id: a.dataset.id,
+                    src: a.dataset.src,
+                    x: parseFloat(a.dataset.x),
+                    y: parseFloat(a.dataset.y),
+                    scale: parseFloat(a.dataset.scale)
+                }});
+            }});
+
             let payload = {{
                 "DEFAULT_COM_X": newComX,
                 "DEFAULT_COM_Y": newComY,
-                "FRAME_CONFIGS": {{}}
+                "FRAME_CONFIGS": {{}},
+                "ASSETS": assetsArray
             }};
             
             for (let fName in frameOffsets) {{

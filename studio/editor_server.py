@@ -27,6 +27,10 @@ class EditorHandler(SimpleHTTPRequestHandler):
             with open(config_path, 'w') as f:
                 json.dump(config, f, indent=4)
                 
+            if "ASSETS" in data:
+                with open('studio/scene_assets.json', 'w') as f:
+                    json.dump(data["ASSETS"], f, indent=4)
+                
             print("Rebuilding frames...")
             subprocess.run(['python3', 'build_animatic.py'], cwd='studio')
             
@@ -46,6 +50,36 @@ class EditorHandler(SimpleHTTPRequestHandler):
             self.send_header('Content-type', 'application/json')
             self.end_headers()
             self.wfile.write(json.dumps({'status': 'ok'}).encode('utf-8'))
+        elif self.path == '/generate_asset':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                with open('studio/pending_request.json', 'w') as f:
+                    json.dump(data, f)
+                    
+                print("\n" + "="*40)
+                print(f"🤖 AI ASSET REQUEST RECEIVED!")
+                print(f"Prompt: {data.get('prompt')}")
+                print(f"Location: X={data.get('x')}, Y={data.get('y')}")
+                print("="*40 + "\n")
+                
+                self.send_response(200)
+                self.send_header('Content-type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'status': 'pending'}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.end_headers()
+                self.wfile.write(str(e).encode('utf-8'))
+        elif self.path == '/check_status':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            if os.path.exists('studio/pending_request.json'):
+                self.wfile.write(json.dumps({'status': 'pending'}).encode('utf-8'))
+            else:
+                self.wfile.write(json.dumps({'status': 'done'}).encode('utf-8'))
         else:
             self.send_response(404)
             self.end_headers()
