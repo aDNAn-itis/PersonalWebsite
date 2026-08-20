@@ -12,8 +12,8 @@
         
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
 
-        <!-- Bike Scene Animation Frame -->
-        <img class="bike-scene-item" id="bike-animator" src="assets/scene2/frame1.png" alt="Cycling Animation">
+        <!-- Bike Scene Animation Frames -->
+        <div class="bike-scene-item" id="bike-animator" aria-hidden="true"></div>
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
         <!-- Moving the bag up slightly -->
@@ -173,82 +173,72 @@
         // ----------------------------------------------------
         // Bedroom Stop-Motion Animation Logic (Scene 1)
         // ----------------------------------------------------
-        const bedroomFrames = [];
-        const totalBedroomFrames = 18; // frame0 to frame17
-        for (let i = 0; i < totalBedroomFrames; i++) {
-            const img = new Image();
-            img.src = `assets/scene1/frame${i}.png`;
-            bedroomFrames.push(img);
-        }
-
-        let bedroomAnimationInterval;
-        let currentBedroomFrame = 0;
         const bedroomAnimator = document.getElementById('bedroom-animator');
-        
-        function startBedroomAnimation() {
-            clearInterval(bedroomAnimationInterval);
-            currentBedroomFrame = 0;
-            bedroomAnimator.src = bedroomFrames[currentBedroomFrame].src + "?v=4";
-            
-            // Loop at 1000ms (1 fps) as requested
-            bedroomAnimationInterval = setInterval(() => {
-                currentBedroomFrame++;
-                if (currentBedroomFrame >= totalBedroomFrames) {
-                    currentBedroomFrame = 0; // loop back to start
-                }
-                bedroomAnimator.src = bedroomFrames[currentBedroomFrame].src + "?v=4";
-            }, 1000);
-        }
-        
-        function stopBedroomAnimation() {
-            clearInterval(bedroomAnimationInterval);
-        }
+        const bedroomBackBtn = document.getElementById('bedroom-back-btn');
+        if (bedroomAnimator && bedroomBackBtn) {
+            const bedroomFrames = [];
+            const totalBedroomFrames = 18;
+            for (let i = 0; i < totalBedroomFrames; i++) {
+                const img = new Image();
+                img.src = `assets/scene1/frame${i}.png`;
+                bedroomFrames.push(img);
+            }
 
-        // Bedroom Scene Skip Button Logic
-        document.getElementById('bedroom-back-btn').addEventListener('click', () => {
-            document.body.classList.remove('bedroom-active');
-            stopBedroomAnimation();
-        });
+            let bedroomAnimationInterval;
+            let currentBedroomFrame = 0;
 
-        // Start Bedroom Scene by default when page loads!
-        document.body.classList.add('bedroom-active');
-        startBedroomAnimation();
+            function startBedroomAnimation() {
+                clearInterval(bedroomAnimationInterval);
+                currentBedroomFrame = 0;
+                bedroomAnimator.src = bedroomFrames[currentBedroomFrame].src;
+                bedroomAnimationInterval = setInterval(() => {
+                    currentBedroomFrame = (currentBedroomFrame + 1) % totalBedroomFrames;
+                    bedroomAnimator.src = bedroomFrames[currentBedroomFrame].src;
+                }, 1000);
+            }
+
+            function stopBedroomAnimation() {
+                clearInterval(bedroomAnimationInterval);
+            }
+
+            bedroomBackBtn.addEventListener('click', () => {
+                document.body.classList.remove('bedroom-active');
+                stopBedroomAnimation();
+            });
+        }
 
         // ----------------------------------------------------
         // Bike Stop-Motion Animation Logic (Scene 2)
         // ----------------------------------------------------
-        const bikeFrames = [];
-        const totalFrames = 8;
-        // Preload frames to prevent flickering
-        for (let i = 1; i <= totalFrames; i++) {
-            const img = new Image();
-            img.src = `assets/scene2/frame${i}.png`;
-            bikeFrames.push(img);
+        const bikeAnimator = document.getElementById('bike-animator');
+        const totalBikeFrames = 8;
+        const bikeFrameEls = [];
+        for (let i = 1; i <= totalBikeFrames; i++) {
+            const img = document.createElement('img');
+            img.src = `assets/scene2/frame${i}.png?v=plate1`;
+            img.alt = '';
+            if (i === 1) img.classList.add('active');
+            bikeAnimator.appendChild(img);
+            bikeFrameEls.push(img);
         }
 
         let bikeAnimationInterval;
-        let currentFrame = 1;
-        const bikeAnimator = document.getElementById('bike-animator');
-        
+        let currentBikeFrame = 0;
+
         function startBikeAnimation() {
             clearInterval(bikeAnimationInterval);
-            currentFrame = 1;
-            bikeAnimator.src = bikeFrames[currentFrame - 1].src + "?v=3";
-            
-            // Loop at 450ms (~2.2 fps) for a much slower, relaxed stop-motion feel
+            currentBikeFrame = 0;
+            bikeFrameEls.forEach((el, i) => el.classList.toggle('active', i === 0));
             bikeAnimationInterval = setInterval(() => {
-                currentFrame++;
-                if (currentFrame > totalFrames) {
-                    currentFrame = 1; // loop back to start
-                }
-                bikeAnimator.src = bikeFrames[currentFrame - 1].src + "?v=3";
-            }, 450);
+                bikeFrameEls[currentBikeFrame].classList.remove('active');
+                currentBikeFrame = (currentBikeFrame + 1) % totalBikeFrames;
+                bikeFrameEls[currentBikeFrame].classList.add('active');
+            }, 420);
         }
-        
+
         function stopBikeAnimation() {
             clearInterval(bikeAnimationInterval);
-        }
-        
+        } 
         // Close Modal Logic - Restore the scene
         document.getElementById('close-btn').addEventListener('click', () => {
             document.getElementById('modal-overlay').classList.remove('modal-active');

@@ -5,6 +5,8 @@ import json
 import numpy as np
 from PIL import Image
 
+from stabilize import consensus_stabilize, content_mask
+
 # --- STUDIO CONFIGURATION ---
 TARGET_W, TARGET_H = 1774, 887
 
@@ -41,11 +43,6 @@ def extract_number(f):
 files = sorted(glob.glob(os.path.join(input_dir, '*.png')), key=extract_number)
 print(f"Found {len(files)} raw frames. Building Animatic with consensus stabilization...")
 
-def content_mask(arr):
-    alpha = arr[:, :, 3]
-    rgb = arr[:, :, :3]
-    return (alpha > 10) & ((rgb[:, :, 0] < 240) | (rgb[:, :, 1] < 240) | (rgb[:, :, 2] < 240))
-
 def get_smart_metrics(img_rgba):
     data = np.array(img_rgba)
     mask = content_mask(data)
@@ -57,100 +54,6 @@ def get_smart_metrics(img_rgba):
         bbox = (int(np.min(x_coords)), int(np.min(y_coords)), int(np.max(x_coords)), int(np.max(y_coords)))
         return bbox, area, (cx, cy)
     return None, 0, (0, 0)
-
-def shift_canvas(arr, dx, dy):
-    if dx == 0 and dy == 0:
-        return arr
-    shifted = np.zeros_like(arr)
-    h, w = arr.shape[:2]
-    src_x0, src_y0 = max(0, -dx), max(0, -dy)
-    dst_x0, dst_y0 = max(0, dx), max(0, dy)
-    src_x1, src_y1 = min(w, w - dx), min(h, h - dy)
-    dst_x1 = dst_x0 + (src_x1 - src_x0)
-    dst_y1 = dst_y0 + (src_y1 - src_y0)
-    if dst_x1 > dst_x0 and dst_y1 > dst_y0:
-        shifted[dst_y0:dst_y1, dst_x0:dst_x1] = arr[src_y0:src_y1, src_x0:src_x1]
-    return shifted
-
-def consensus_stabilize(canvases, targets):
-    """Pin every frame using pixels that stay put across the sequence.
-
-    Changing interiors (monitor video, waving limbs) are ignored because they
-    have high temporal variance. Rigid shells (bezel, torso) keep the asset still.
-    """
-    stack = np.stack(canvases, axis=0)
-    alpha = stack[:, :, :, 3] > 10
-    rgb = stack[:, :, :, :3].astype(np.float32)
-    presence = alpha.mean(axis=0)
-    count = np.maximum(alpha.sum(axis=0).astype(np.float32), 1.0)
-    mean_rgb = (rgb * alpha[..., None]).sum(axis=0) / count[..., None]
-    var = ((rgb - mean_rgb) ** 2 * alpha[..., None]).sum(axis=0) / count[..., None]
-    std = np.sqrt(var).mean(axis=2)
-
-    well_present = presence >= 0.5
-    present_std = std[well_present]
-    std_cut = max(8.0, float(np.percentile(present_std, 45))) if present_std.size else 8.0
-    stable = well_present & (std <= std_cut)
-
-    mean_area = float(alpha.sum(axis=(1, 2)).mean()) if alpha.size else 0
-    min_stable = max(200, 0.08 * mean_area)
-    mode = "variance-core"
-    if stable.sum() < min_stable:
-        stable = presence >= 0.7
-        mode = "presence-core"
-    if stable.sum() < min_stable:
-        stable = None
-        mode = "full-mask fallback"
-    print(f"Consensus stabilizer: {mode} ({0 if stable is None else int(stable.sum())} anchor pixels, std_cut={std_cut:.1f})")
-
-    ref = stable if stable is not None else (presence >= 0.5)
-    if ref.sum() < 50:
-        ref = alpha[0]
-
-    def best_translation(mask, template, max_shift=8):
-        ys, xs = np.where(template)
-        if len(xs) == 0:
-            return 0, 0
-        y0 = max(0, int(ys.min()) - max_shift)
-        x0 = max(0, int(xs.min()) - max_shift)
-        y1 = min(template.shape[0], int(ys.max()) + max_shift + 1)
-        x1 = min(template.shape[1], int(xs.max()) + max_shift + 1)
-        ref_c = template[y0:y1, x0:x1]
-        mask_c = mask[y0:y1, x0:x1]
-        h, w = mask_c.shape
-        best_s, best_d = -1, (0, 0)
-        for dy in range(-max_shift, max_shift + 1):
-            for dx in range(-max_shift, max_shift + 1):
-                src_x0, src_y0 = max(0, -dx), max(0, -dy)
-                dst_x0, dst_y0 = max(0, dx), max(0, dy)
-                src_x1, src_y1 = min(w, w - dx), min(h, h - dy)
-                if src_x1 <= src_x0 or src_y1 <= src_y0:
-                    continue
-                patch = np.zeros_like(mask_c)
-                patch[dst_y0:dst_y0 + (src_y1 - src_y0), dst_x0:dst_x0 + (src_x1 - src_x0)] = mask_c[src_y0:src_y1, src_x0:src_x1]
-                s = int(np.count_nonzero(patch & ref_c))
-                if s > best_s:
-                    best_s, best_d = s, (dx, dy)
-        return best_d
-
-    aligned = []
-    for canvas in canvases:
-        mask = content_mask(canvas)
-        dx, dy = best_translation(mask, ref)
-        aligned.append(shift_canvas(canvas, dx, dy))
-
-    ref_ys, ref_xs = np.where(ref)
-    ref_cx, ref_cy = float(ref_xs.mean()), float(ref_ys.mean())
-    base_tx, base_ty = targets[0]
-    global_dx = int(round(base_tx - ref_cx))
-    global_dy = int(round(base_ty - ref_cy))
-
-    out = []
-    for canvas, (tx, ty) in zip(aligned, targets):
-        extra_dx = int(round(tx - base_tx))
-        extra_dy = int(round(ty - base_ty))
-        out.append(shift_canvas(canvas, global_dx + extra_dx, global_dy + extra_dy))
-    return out
 
 jobs = []
 for file in files:

@@ -122,12 +122,26 @@ body {
     position: absolute;
     top: 10%;
     /* initial off-screen start */
-    left: 100%; 
+    left: 100%;
+    width: 100%;
+    height: 100%;
+    transform: scale(1.1);
+    pointer-events: none;
+}
+
+#bike-animator img {
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     object-fit: contain;
-    transform: scale(1.1);
+    opacity: 0;
     pointer-events: none;
+}
+
+#bike-animator img.active {
+    opacity: 1;
 }
 
 @keyframes cycleAcross {
@@ -135,10 +149,7 @@ body {
     100% { left: -100%; }
 }
 
-
-
 body.bike-active #bike-animator {
-    /* Moves across the screen in 12 seconds, linearly, forever */
     animation: cycleAcross 12s linear infinite;
 }
 
@@ -245,7 +256,6 @@ body.bike-active .bike-scene-item {
 body.about-active .scene-container::before {
     background-image: url('assets/a/about_background.png');
 }
-
 
 /* Swap background when the bike scene is active */
 body.bike-active .scene-container::before {
