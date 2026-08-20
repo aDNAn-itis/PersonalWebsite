@@ -39,78 +39,287 @@ def extract_number(f):
     return int(s.group()) if s else 0
 
 files = sorted(glob.glob(os.path.join(input_dir, '*.png')), key=extract_number)
-print(f"Found {len(files)} raw frames. Building Animatic with PURE PYTHON AREA-SCALING...")
+print(f"Found {len(files)} raw frames. Building Animatic with consensus stabilization...")
+
+def content_mask(arr):
+    alpha = arr[:, :, 3]
+    rgb = arr[:, :, :3]
+    return (alpha > 10) & ((rgb[:, :, 0] < 240) | (rgb[:, :, 1] < 240) | (rgb[:, :, 2] < 240))
 
 def get_smart_metrics(img_rgba):
     data = np.array(img_rgba)
-    alpha = data[:, :, 3]
-    rgb = data[:, :, :3]
-    
-    is_not_transparent = alpha > 10
-    is_not_white = (rgb[:, :, 0] < 240) | (rgb[:, :, 1] < 240) | (rgb[:, :, 2] < 240)
-    mask = is_not_transparent & is_not_white
-    
+    mask = content_mask(data)
     y_coords, x_coords = np.where(mask)
     if len(x_coords) > 0:
         area = len(x_coords)
         cx = np.mean(x_coords)
         cy = np.mean(y_coords)
-        bbox = (np.min(x_coords), np.min(y_coords), np.max(x_coords), np.max(y_coords))
+        bbox = (int(np.min(x_coords)), int(np.min(y_coords)), int(np.max(x_coords)), int(np.max(y_coords)))
         return bbox, area, (cx, cy)
-    return None, 0, (0,0)
+    return None, 0, (0, 0)
 
+def shift_canvas(arr, dx, dy):
+    if dx == 0 and dy == 0:
+        return arr
+    shifted = np.zeros_like(arr)
+    h, w = arr.shape[:2]
+    src_x0, src_y0 = max(0, -dx), max(0, -dy)
+    dst_x0, dst_y0 = max(0, dx), max(0, dy)
+    src_x1, src_y1 = min(w, w - dx), min(h, h - dy)
+    dst_x1 = dst_x0 + (src_x1 - src_x0)
+    dst_y1 = dst_y0 + (src_y1 - src_y0)
+    if dst_x1 > dst_x0 and dst_y1 > dst_y0:
+        shifted[dst_y0:dst_y1, dst_x0:dst_x1] = arr[src_y0:src_y1, src_x0:src_x1]
+    return shifted
+
+def consensus_stabilize(canvases, targets):
+    """Pin every frame using pixels that stay put across the sequence.
+
+    Changing interiors (monitor video, waving limbs) are ignored because they
+    have high temporal variance. Rigid shells (bezel, torso) keep the asset still.
+    """
+    stack = np.stack(canvases, axis=0)
+    alpha = stack[:, :, :, 3] > 10
+    rgb = stack[:, :, :, :3].astype(np.float32)
+    presence = alpha.mean(axis=0)
+    count = np.maximum(alpha.sum(axis=0).astype(np.float32), 1.0)
+    mean_rgb = (rgb * alpha[..., None]).sum(axis=0) / count[..., None]
+    var = ((rgb - mean_rgb) ** 2 * alpha[..., None]).sum(axis=0) / count[..., None]
+    std = np.sqrt(var).mean(axis=2)
+
+    well_present = presence >= 0.5
+    present_std = std[well_present]
+    std_cut = max(8.0, float(np.percentile(present_std, 45))) if present_std.size else 8.0
+    stable = well_present & (std <= std_cut)
+
+    mean_area = float(alpha.sum(axis=(1, 2)).mean()) if alpha.size else 0
+    min_stable = max(200, 0.08 * mean_area)
+    mode = "variance-core"
+    if stable.sum() < min_stable:
+        stable = presence >= 0.7
+        mode = "presence-core"
+    if stable.sum() < min_stable:
+        stable = None
+        mode = "full-mask fallback"
+    print(f"Consensus stabilizer: {mode} ({0 if stable is None else int(stable.sum())} anchor pixels, std_cut={std_cut:.1f})")
+
+    ref = stable if stable is not None else (presence >= 0.5)
+    if ref.sum() < 50:
+        ref = alpha[0]
+
+    def best_translation(mask, template, max_shift=8):
+        ys, xs = np.where(template)
+        if len(xs) == 0:
+            return 0, 0
+        y0 = max(0, int(ys.min()) - max_shift)
+        x0 = max(0, int(xs.min()) - max_shift)
+        y1 = min(template.shape[0], int(ys.max()) + max_shift + 1)
+        x1 = min(template.shape[1], int(xs.max()) + max_shift + 1)
+        ref_c = template[y0:y1, x0:x1]
+        mask_c = mask[y0:y1, x0:x1]
+        h, w = mask_c.shape
+        best_s, best_d = -1, (0, 0)
+        for dy in range(-max_shift, max_shift + 1):
+            for dx in range(-max_shift, max_shift + 1):
+                src_x0, src_y0 = max(0, -dx), max(0, -dy)
+                dst_x0, dst_y0 = max(0, dx), max(0, dy)
+                src_x1, src_y1 = min(w, w - dx), min(h, h - dy)
+                if src_x1 <= src_x0 or src_y1 <= src_y0:
+                    continue
+                patch = np.zeros_like(mask_c)
+                patch[dst_y0:dst_y0 + (src_y1 - src_y0), dst_x0:dst_x0 + (src_x1 - src_x0)] = mask_c[src_y0:src_y1, src_x0:src_x1]
+                s = int(np.count_nonzero(patch & ref_c))
+                if s > best_s:
+                    best_s, best_d = s, (dx, dy)
+        return best_d
+
+    aligned = []
+    for canvas in canvases:
+        mask = content_mask(canvas)
+        dx, dy = best_translation(mask, ref)
+        aligned.append(shift_canvas(canvas, dx, dy))
+
+    ref_ys, ref_xs = np.where(ref)
+    ref_cx, ref_cy = float(ref_xs.mean()), float(ref_ys.mean())
+    base_tx, base_ty = targets[0]
+    global_dx = int(round(base_tx - ref_cx))
+    global_dy = int(round(base_ty - ref_cy))
+
+    out = []
+    for canvas, (tx, ty) in zip(aligned, targets):
+        extra_dx = int(round(tx - base_tx))
+        extra_dy = int(round(ty - base_ty))
+        out.append(shift_canvas(canvas, global_dx + extra_dx, global_dy + extra_dy))
+    return out
+
+jobs = []
 for file in files:
     filename = os.path.basename(file)
     config = FRAME_CONFIGS.get(filename, {})
-    is_dynamic = config.get("dynamic", True)
-    
     img = Image.open(file).convert('RGBA')
-    canvas = Image.new('RGBA', (TARGET_W, TARGET_H), (0, 0, 0, 0))
-    
-    if not is_dynamic:
-        frame_scale = config.get("scale", 0.5)
-        frame_rot = config.get("rotation", 0)
-        frame_ox = config.get("offset_x", -450)
-        frame_oy = config.get("offset_y", -40)
-        
-        new_w, new_h = int(img.width * frame_scale), int(img.height * frame_scale)
-        resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
-        if frame_rot != 0:
-            resized = resized.rotate(frame_rot, expand=True, resample=Image.Resampling.BICUBIC)
-            new_w, new_h = resized.size
-            
-        px = (TARGET_W - new_w) // 2 + frame_ox
-        py = (TARGET_H - new_h) // 2 + frame_oy
-        canvas.paste(resized, (px, py), resized)
-        canvas.save(os.path.join(output_dir, filename))
-        print(f"Processed {filename}: [FALLING] Legacy Rotation")
-        
+    jobs.append({
+        "file": file,
+        "filename": filename,
+        "config": config,
+        "img": img,
+        "dynamic": config.get("dynamic", True),
+    })
+
+dynamic_metrics = []
+for job in jobs:
+    if not job["dynamic"]:
+        continue
+    bbox, area, com = get_smart_metrics(job["img"])
+    job["bbox"], job["area"], job["com"] = bbox, area, com
+    if bbox and area > 0:
+        left, top, right, bottom = bbox
+        dynamic_metrics.append({
+            "area": area,
+            "cw": right - left + 1,
+            "ch": bottom - top + 1,
+            "aspect": (right - left + 1) / max(bottom - top + 1, 1),
+        })
+
+rigid_lock = False
+locked_scale = None
+median_area = None
+area_cv = aspect_cv = None
+if len(dynamic_metrics) >= 3:
+    areas = np.array([m["area"] for m in dynamic_metrics], dtype=np.float64)
+    aspects = np.array([m["aspect"] for m in dynamic_metrics], dtype=np.float64)
+    median_area = float(np.median(areas))
+    area_cv = float(np.std(areas) / max(median_area, 1.0))
+    aspect_cv = float(np.std(aspects) / max(float(np.mean(aspects)), 1e-6))
+    rigid_lock = area_cv < 0.05 and aspect_cv < 0.04
+    if rigid_lock:
+        locked_scale = float(np.sqrt(TARGET_AREA / median_area))
+        print(f"Rigid sequence (area CV={area_cv:.4f}, aspect CV={aspect_cv:.4f}). One camera plate, scale={locked_scale:.4f}.")
     else:
-        target_com_x = config.get("com_x", DEFAULT_COM_X)
-        target_com_y = config.get("com_y", DEFAULT_COM_Y)
-        
-        bbox, raw_area, (raw_cx, raw_cy) = get_smart_metrics(img)
-        
-        if bbox and raw_area > 0:
-            left, top, right, bottom = bbox
-            img_cropped = img.crop((left, top, right, bottom))
-            
-            scale_factor = np.sqrt(TARGET_AREA / raw_area)
-            new_w = int(img_cropped.width * scale_factor)
-            new_h = int(img_cropped.height * scale_factor)
-            resized = img_cropped.resize((new_w, new_h), Image.Resampling.LANCZOS)
-            
-            scaled_cx = (raw_cx - left) * scale_factor
-            scaled_cy = (raw_cy - top) * scale_factor
-            
-            px = int(target_com_x - scaled_cx)
-            py = int(target_com_y - scaled_cy)
-            
-            canvas.paste(resized, (px, py), resized)
-            canvas.save(os.path.join(output_dir, filename))
-            print(f"Processed {filename}: [SMART] Scaled {scale_factor:.2f}x. Pinned to ({target_com_x}, {target_com_y})")
-        else:
-            print(f"Processed {filename}: FAILED (Empty Mask)")
+        print(f"Articulated sequence (area CV={area_cv:.4f}, aspect CV={aspect_cv:.4f}). Volume scale + locked camera plate.")
+elif len(dynamic_metrics) > 0:
+    median_area = float(np.median([m["area"] for m in dynamic_metrics]))
+    locked_scale = float(np.sqrt(TARGET_AREA / max(median_area, 1.0)))
+
+PLATE_PAD = 8
+
+def paste_at_com(dest, sprite, sprite_cx, sprite_cy, dest_cx, dest_cy):
+    px = int(round(dest_cx - sprite_cx))
+    py = int(round(dest_cy - sprite_cy))
+    dest.paste(sprite, (px, py), sprite)
+    return dest
+
+def plate_from_extents(items):
+    """Size a plate so CoM-pinning cannot clip bbox (stand, hair, etc.)."""
+    max_left = max_right = max_up = max_down = 0.0
+    for w, h, cx, cy in items:
+        max_left = max(max_left, float(cx))
+        max_right = max(max_right, float(w) - float(cx))
+        max_up = max(max_up, float(cy))
+        max_down = max(max_down, float(h) - float(cy))
+    plate_w = int(np.ceil(max_left + max_right)) + 2 * PLATE_PAD
+    plate_h = int(np.ceil(max_up + max_down)) + 2 * PLATE_PAD
+    pin_x = PLATE_PAD + max_left
+    pin_y = PLATE_PAD + max_up
+    return plate_w, plate_h, pin_x, pin_y
+
+dynamic_canvases = []
+dynamic_targets = []
+dynamic_names = []
+
+# --- Locked-camera plates: same input size, same resample grid, then pin ---
+usable = [j for j in jobs if j["dynamic"] and j.get("bbox") and j.get("area", 0) > 0]
+legacy_jobs = [j for j in jobs if not j["dynamic"]]
+
+for job in legacy_jobs:
+    filename = job["filename"]
+    config = job["config"]
+    img = job["img"]
+    canvas = Image.new('RGBA', (TARGET_W, TARGET_H), (0, 0, 0, 0))
+    frame_scale = config.get("scale", 0.5)
+    frame_rot = config.get("rotation", 0)
+    frame_ox = config.get("offset_x", -450)
+    frame_oy = config.get("offset_y", -40)
+    new_w, new_h = int(img.width * frame_scale), int(img.height * frame_scale)
+    resized = img.resize((new_w, new_h), Image.Resampling.LANCZOS)
+    if frame_rot != 0:
+        resized = resized.rotate(frame_rot, expand=True, resample=Image.Resampling.BICUBIC)
+        new_w, new_h = resized.size
+    px = (TARGET_W - new_w) // 2 + frame_ox
+    py = (TARGET_H - new_h) // 2 + frame_oy
+    canvas.paste(resized, (px, py), resized)
+    canvas.save(os.path.join(output_dir, filename))
+    print(f"Processed {filename}: [FALLING] Legacy Rotation")
+
+plates = []
+plate_meta = []
+plate_pin_x = plate_pin_y = None
+if usable:
+    if rigid_lock:
+        extent_items = []
+        crops = []
+        for job in usable:
+            left, top, right, bottom = job["bbox"]
+            crop = job["img"].crop((left, top, right, bottom))
+            cx, cy = job["com"][0] - left, job["com"][1] - top
+            crops.append((crop, cx, cy, job))
+            extent_items.append((crop.width, crop.height, cx, cy))
+        raw_w, raw_h, pin_x, pin_y = plate_from_extents(extent_items)
+        for crop, cx, cy, job in crops:
+            plate = Image.new('RGBA', (raw_w, raw_h), (0, 0, 0, 0))
+            paste_at_com(plate, crop, cx, cy, pin_x, pin_y)
+            plates.append(plate)
+            plate_meta.append(job)
+        out_w = max(1, int(round(raw_w * locked_scale)))
+        out_h = max(1, int(round(raw_h * locked_scale)))
+        plates = [p.resize((out_w, out_h), Image.Resampling.LANCZOS) for p in plates]
+        plate_pin_x = pin_x * (out_w / raw_w)
+        plate_pin_y = pin_y * (out_h / raw_h)
+        print(f"Camera plate {raw_w}x{raw_h} → {out_w}x{out_h} (identical resample for {len(plates)} frames, stand-safe pin)")
+    else:
+        scaled = []
+        for job in usable:
+            left, top, right, bottom = job["bbox"]
+            crop = job["img"].crop((left, top, right, bottom))
+            scale = float(np.sqrt(TARGET_AREA / job["area"]))
+            nw = max(1, int(round(crop.width * scale)))
+            nh = max(1, int(round(crop.height * scale)))
+            resized = crop.resize((nw, nh), Image.Resampling.LANCZOS)
+            cx = (job["com"][0] - left) * (nw / max(crop.width, 1))
+            cy = (job["com"][1] - top) * (nh / max(crop.height, 1))
+            scaled.append((resized, cx, cy, job, scale))
+        out_w, out_h, plate_pin_x, plate_pin_y = plate_from_extents(
+            [(im.width, im.height, cx, cy) for im, cx, cy, _, _ in scaled]
+        )
+        for resized, cx, cy, job, scale in scaled:
+            plate = Image.new('RGBA', (out_w, out_h), (0, 0, 0, 0))
+            paste_at_com(plate, resized, cx, cy, plate_pin_x, plate_pin_y)
+            plates.append(plate)
+            plate_meta.append(job)
+            print(f"Processed {job['filename']}: [VOLUME] {scale:.2f}x onto {out_w}x{out_h} plate")
+        print(f"Camera plate locked at {out_w}x{out_h} for {len(plates)} frames")
+
+    for plate, job in zip(plates, plate_meta):
+        target_com_x = job["config"].get("com_x", DEFAULT_COM_X)
+        target_com_y = job["config"].get("com_y", DEFAULT_COM_Y)
+        canvas = Image.new('RGBA', (TARGET_W, TARGET_H), (0, 0, 0, 0))
+        paste_at_com(canvas, plate, plate_pin_x, plate_pin_y, target_com_x, target_com_y)
+        dynamic_canvases.append(np.array(canvas))
+        dynamic_targets.append((target_com_x, target_com_y))
+        dynamic_names.append(job["filename"])
+        if rigid_lock:
+            print(f"Processed {job['filename']}: [PLATE] pinned to ({target_com_x}, {target_com_y})")
+
+failed = [j for j in jobs if j["dynamic"] and not (j.get("bbox") and j.get("area", 0) > 0)]
+for job in failed:
+    print(f"Processed {job['filename']}: FAILED (Empty Mask)")
+
+if len(dynamic_canvases) >= 2:
+    stabilized = consensus_stabilize(dynamic_canvases, dynamic_targets)
+    for filename, arr in zip(dynamic_names, stabilized):
+        Image.fromarray(arr).save(os.path.join(output_dir, filename))
+    print(f"Wrote {len(stabilized)} locked-camera frames.")
+elif len(dynamic_canvases) == 1:
+    Image.fromarray(dynamic_canvases[0]).save(os.path.join(output_dir, dynamic_names[0]))
 
 # Generate Web Previewer with Visual Editor
 assets_html = ""
@@ -130,13 +339,13 @@ html_content = f"""
     <title>Scene Studio - Visual Editor</title>
     <style>
         body {{ background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; color: white; font-family: sans-serif; }}
-        .scene {{ position: relative; width: 1774px; height: 887px; max-width: 90vw; max-height: 90vh; aspect-ratio: 1774/887; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #333; }}
-        .bg {{ position: absolute; width: 100%; height: 100%; object-fit: cover; }}
+        .scene {{ position: relative; width: 1774px; height: 887px; max-width: 90vw; max-height: 90vh; aspect-ratio: 1774/887; overflow: hidden; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.8); border: 1px solid #333; }}
+        .bg {{ position: absolute; width: 100%; height: 100%; object-fit: fill; }}
         
         #frames-container {{ position: absolute; width: 100%; height: 100%; cursor: grab; }}
         #frames-container:active {{ cursor: grabbing; }}
         
-        .frame {{ position: absolute; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; }}
+        .frame {{ position: absolute; width: 100%; height: 100%; object-fit: fill; opacity: 0; pointer-events: none; }}
         .active {{ opacity: 1; }}
         
         #controls {{ position: absolute; top: 20px; left: 20px; z-index: 100; background: rgba(0,0,0,0.85); padding: 20px; border-radius: 8px; border: 1px solid #444; min-width: 320px; }}
@@ -471,4 +680,4 @@ html_content = f"""
 with open('preview.html', 'w', encoding='utf-8') as f:
     f.write(html_content)
 
-print(f"\\nSUCCESS! 18 frames perfectly aligned using Area-Scaling! Visual Editor is ready.")
+print(f"\\nSUCCESS! {len(files)} frames aligned with consensus stabilization. Visual Editor is ready.")
