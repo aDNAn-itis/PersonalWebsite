@@ -12,8 +12,8 @@
         
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
 
-        <!-- Bike Scene Animation Frames -->
-        <div class="bike-scene-item" id="bike-animator" aria-hidden="true"></div>
+        <!-- Bike Scene Animation Frame -->
+        <img class="bike-scene-item" id="bike-animator" src="assets/scene2/frame1.png" alt="Cycling Animation">
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
         <!-- Moving the bag up slightly -->
@@ -210,29 +210,25 @@
         // ----------------------------------------------------
         // Bike Stop-Motion Animation Logic (Scene 2)
         // ----------------------------------------------------
-        const bikeAnimator = document.getElementById('bike-animator');
-        const totalBikeFrames = 8;
-        const bikeFrameEls = [];
-        for (let i = 1; i <= totalBikeFrames; i++) {
-            const img = document.createElement('img');
-            img.src = `assets/scene2/frame${i}.png?v=plate1`;
-            img.alt = '';
-            if (i === 1) img.classList.add('active');
-            bikeAnimator.appendChild(img);
-            bikeFrameEls.push(img);
-        }
+        const bikeFrameNums = [1, 2, 3, 5, 6, 7, 8];
+        const bikeFrames = bikeFrameNums.map((n) => {
+            const img = new Image();
+            img.src = `assets/scene2/frame${n}.png?v=orig`;
+            return img;
+        });
+        const totalBikeFrames = bikeFrames.length;
 
         let bikeAnimationInterval;
         let currentBikeFrame = 0;
+        const bikeAnimator = document.getElementById('bike-animator');
 
         function startBikeAnimation() {
             clearInterval(bikeAnimationInterval);
             currentBikeFrame = 0;
-            bikeFrameEls.forEach((el, i) => el.classList.toggle('active', i === 0));
+            bikeAnimator.src = bikeFrames[0].src;
             bikeAnimationInterval = setInterval(() => {
-                bikeFrameEls[currentBikeFrame].classList.remove('active');
                 currentBikeFrame = (currentBikeFrame + 1) % totalBikeFrames;
-                bikeFrameEls[currentBikeFrame].classList.add('active');
+                bikeAnimator.src = bikeFrames[currentBikeFrame].src;
             }, 420);
         }
 

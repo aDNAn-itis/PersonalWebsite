@@ -1,4 +1,4 @@
-"""Locked-camera plate: one bike, only the pedals change.
+"""Translate-only lock so a PNG cycle sits on one camera.
 
     python3 studio/stabilize.py --in assets/scene2 --pattern 'frame*.png'
 """
@@ -126,6 +126,7 @@ def repeating_core(occupancy, n_frames):
 
 
 def pin_to_core(frames, core, reference, freeze_reference, max_shift):
+    """Slide each whole still so it overlaps the repeating object, same ground."""
     ref_shell = content_mask(frames[reference]) & core
     if ref_shell.sum() < 50:
         ref_shell = content_mask(frames[reference])
@@ -146,47 +147,7 @@ def pin_to_core(frames, core, reference, freeze_reference, max_shift):
     return out
 
 
-def dilate(mask, radius):
-    m = np.asarray(mask, dtype=bool)
-    for _ in range(max(0, int(radius))):
-        p = np.pad(m, 1, constant_values=False)
-        m = p[1:-1, 1:-1] | p[:-2, 1:-1] | p[2:, 1:-1] | p[1:-1, :-2] | p[1:-1, 2:]
-    return m
-
-
-def lock_to_plate(frames, core, occupancy, reference=0):
-    """Freeze frame 1's bike; only the pedal/leg band may swap."""
-    del occupancy
-    plate = frames[reference].copy()
-    pose = np.zeros(core.shape, dtype=bool)
-    ys, xs = np.where(core)
-    if xs.size:
-        x0, x1 = int(xs.min()), int(xs.max())
-        y0, y1 = int(ys.min()), int(ys.max())
-        crank = np.zeros_like(core, dtype=bool)
-        crank[
-            y0 + int(0.40 * (y1 - y0)) : y1 + 8,
-            x0 + int(0.36 * (x1 - x0)) : x0 + int(0.70 * (x1 - x0)),
-        ] = True
-        pose = dilate(crank, 6) & dilate(core, 8)
-        pose[:, : int(xs.min()) + 12] = False
-    out = []
-    for i, frame in enumerate(frames):
-        if i == reference:
-            out.append(plate)
-            continue
-        paint = content_mask(frame) & pose
-        composed = plate.copy()
-        composed[pose] = 0
-        composed[paint] = frame[paint]
-        holes = pose & (composed[:, :, 3] < 10)
-        composed[holes] = plate[holes]
-        print(f"  frame {i}: plate + {int(paint.sum())} pose pixels")
-        out.append(composed)
-    return out
-
-
-def stabilize_frames(frames, reference=0, max_shift=24, freeze_reference=True, slack=2, lock_plate=False):
+def stabilize_frames(frames, reference=0, max_shift=24, freeze_reference=True, slack=2):
     del slack
     cleaned = [clean_speckles(a) for a in fit_canvas(frames)]
     ref0 = content_mask(cleaned[reference])
@@ -203,13 +164,7 @@ def stabilize_frames(frames, reference=0, max_shift=24, freeze_reference=True, s
     occupancy = occupancy_map(seated)
     core, mode, thresh = repeating_core(occupancy, len(seated))
     print(f"stabilize: {mode}, {int(core.sum())} anchor pixels, thresh={thresh}/{len(seated)}")
-    seated = pin_to_core(seated, core, reference, freeze_reference, max_shift)
-    occupancy = occupancy_map(seated)
-    core, _, _ = repeating_core(occupancy, len(seated))
-    if lock_plate:
-        print("stabilize: locked-camera plate (bike/body frozen, only pedals swap)")
-        seated = lock_to_plate(seated, core, occupancy, reference)
-    return seated
+    return pin_to_core(seated, core, reference, freeze_reference, max_shift)
 
 
 def stabilize_folder(input_dir, output_dir=None, pattern="frame*.png"):
@@ -219,7 +174,7 @@ def stabilize_folder(input_dir, output_dir=None, pattern="frame*.png"):
     if len(paths) < 2:
         raise SystemExit(f"Need at least 2 frames in {input_dir}/{pattern}")
     frames = [np.array(Image.open(p).convert("RGBA")) for p in paths]
-    locked = stabilize_frames(frames, lock_plate=True)
+    locked = stabilize_frames(frames)
     dest = None
     for path, arr in zip(paths, locked):
         dest = os.path.join(output_dir, os.path.basename(path))
