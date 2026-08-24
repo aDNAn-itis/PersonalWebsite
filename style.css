@@ -114,6 +114,26 @@ body {
     transition: opacity 0.5s ease;
 }
 
+/* Hide laptop animation elements by default */
+.laptop-scene-item {
+    position: absolute;
+    top: 61.8%; /* Match hitbox roughly */
+    left: 39.4%;
+    width: 25%; /* Adjust size */
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-20%, -30%); /* Center over the original laptop */
+    z-index: 50; /* Bring above other desk items */
+}
+
+/* When laptop opening animation is active */
+body.laptop-opening .laptop-scene-item {
+    opacity: 1 !important;
+}
+body.laptop-opening #laptop {
+    opacity: 0 !important;
+}
+
 
 
 

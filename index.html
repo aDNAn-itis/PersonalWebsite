@@ -26,6 +26,9 @@
         <img class="interactive-item" id="paper" src="assets/a/paper_transparent.png" alt="Paper & Pen">
         <img class="interactive-item" id="phone" src="assets/a/phone_transparent.png" alt="Phone">
         
+        <!-- Laptop Opening Animation Frame -->
+        <img class="laptop-scene-item" id="laptop-animator" src="assets/laptop_open/f0.png" alt="Laptop Opening Animation">
+
         <!-- Invisible Hitboxes for accurate hovering -->
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
@@ -75,8 +78,6 @@
                 </div>
                 
                 <div id="laptop-content" class="panel">
-                    <h2>Software</h2>
-                    <p>Highlighting the <strong>"FlyingRay"</strong> interactive dashboard built for GSoC 2025 under OpenAstronomy, and the <strong>CampusConnect</strong> GitHub project.</p>
                 </div>
 
                 <div id="books-content" class="panel">
@@ -135,6 +136,26 @@
                     startBikeAnimation();
                     
                     return; 
+                }
+
+                if (targetName === 'laptop') {
+                    // Fade out all OTHER items on the desk except laptop base elements
+                    document.querySelectorAll('.interactive-item').forEach(item => {
+                        if (item.id !== 'laptop') {
+                            item.style.opacity = '0';
+                        }
+                    });
+                    
+                    playLaptopAnimation(() => {
+                        // After animation finishes, show the panel
+                        const targetId = targetName + '-content';
+                        const targetPanel = document.getElementById(targetId);
+                        if (targetPanel) {
+                            targetPanel.classList.add('active');
+                        }
+                        document.getElementById('modal-overlay').classList.add('modal-active');
+                    });
+                    return;
                 }
                 
                 // Otherwise, normal cinematic isolation for desk objects (e.g. clicking the bag)
@@ -235,9 +256,42 @@
         function stopBikeAnimation() {
             clearInterval(bikeAnimationInterval);
         } 
+
+        // ----------------------------------------------------
+        // Laptop Opening Animation Logic
+        // ----------------------------------------------------
+        const totalLaptopFrames = 6; 
+        const laptopFrames = [];
+        for(let i=0; i<totalLaptopFrames; i++) {
+            const img = new Image();
+            img.src = `assets/laptop_open/f${i}.png`;
+            laptopFrames.push(img);
+        }
+
+        let laptopAnimationInterval;
+        let currentLaptopFrame = 0;
+        const laptopAnimator = document.getElementById('laptop-animator');
+
+        function playLaptopAnimation(callback) {
+            clearInterval(laptopAnimationInterval);
+            currentLaptopFrame = 0;
+            laptopAnimator.src = laptopFrames[0].src;
+            document.body.classList.add('laptop-opening');
+            
+            laptopAnimationInterval = setInterval(() => {
+                currentLaptopFrame++;
+                if (currentLaptopFrame >= totalLaptopFrames) {
+                    clearInterval(laptopAnimationInterval);
+                    if(callback) callback();
+                    return;
+                }
+                laptopAnimator.src = laptopFrames[currentLaptopFrame].src;
+            }, 250); // 250ms per frame (slowed down)
+        }
         // Close Modal Logic - Restore the scene
         document.getElementById('close-btn').addEventListener('click', () => {
             document.getElementById('modal-overlay').classList.remove('modal-active');
+            document.body.classList.remove('laptop-opening');
             
             // Restore all items back to normal visibility and position
             document.querySelectorAll('.interactive-item').forEach(item => {
