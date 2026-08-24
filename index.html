@@ -26,6 +26,13 @@
         <img class="interactive-item" id="paper" src="assets/a/paper_transparent.png" alt="Paper & Pen">
         <img class="interactive-item" id="phone" src="assets/a/phone_transparent.png" alt="Phone">
         
+        <!-- Lofi Room Transition Assets -->
+        <div class="lofi-table-container">
+            <img class="lofi-table" id="lofi-table" src="assets/projects/table_transparent.png" alt="Lofi Desk">
+        </div>
+        
+        <img class="lofi-fairy-lights thick-lights" src="assets/projects/fairy_lights_thick.png" alt="Thick Fairy Lights">
+
         <!-- Laptop Opening Animation Frame -->
         <img class="laptop-scene-item" id="laptop-animator" src="assets/laptop_open/f0.png" alt="Laptop Opening Animation">
 
@@ -147,13 +154,18 @@
                     });
                     
                     playLaptopAnimation(() => {
-                        // After animation finishes, show the panel
-                        const targetId = targetName + '-content';
-                        const targetPanel = document.getElementById(targetId);
-                        if (targetPanel) {
-                            targetPanel.classList.add('active');
-                        }
-                        document.getElementById('modal-overlay').classList.add('modal-active');
+                        // After laptop finishes opening, slide up the table!
+                        document.body.classList.add('table-active');
+                        
+                        // Show the text modal after the table slides up so the user gets the Back button
+                        setTimeout(() => {
+                            const targetId = targetName + '-content';
+                            const targetPanel = document.getElementById(targetId);
+                            if (targetPanel) {
+                                targetPanel.classList.add('active');
+                            }
+                            document.getElementById('modal-overlay').classList.add('modal-active');
+                        }, 800); // Wait for table to slide up
                     });
                     return;
                 }
@@ -188,6 +200,8 @@
         // Bike Scene Back Button Logic
         document.getElementById('bike-back-btn').addEventListener('click', () => {
             document.body.classList.remove('bike-active');
+            document.body.classList.remove('table-active');
+            document.body.classList.remove('laptop-opening');
             stopBikeAnimation();
         });
 
@@ -292,6 +306,7 @@
         document.getElementById('close-btn').addEventListener('click', () => {
             document.getElementById('modal-overlay').classList.remove('modal-active');
             document.body.classList.remove('laptop-opening');
+            document.body.classList.remove('table-active'); // Hide the table when closing
             
             // Restore all items back to normal visibility and position
             document.querySelectorAll('.interactive-item').forEach(item => {

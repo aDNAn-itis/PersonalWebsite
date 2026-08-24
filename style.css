@@ -134,6 +134,65 @@ body.laptop-opening #laptop {
     opacity: 0 !important;
 }
 
+/* ============================================
+   LOFI ROOM BUILD-UP SCENE
+   ============================================ */
+.lofi-table-container {
+    position: absolute;
+    width: 90%;
+    left: 5%;
+    top: 25%; /* Shifted up so the tabletop is centered */
+    z-index: 45; /* Under the laptop */
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100vh); /* Start off-screen */
+    transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease;
+}
+
+body.table-active .lofi-table-container {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto; /* Enable clicking the drawer */
+}
+
+.lofi-table {
+    width: 100%;
+    display: block;
+}
+
+/* Move the open laptop to the CENTER when the table slides in */
+body.table-active .laptop-scene-item {
+    top: 44%; /* Reverted to the perfect position */
+    left: 50%; /* Centered on the desk */
+    width: 25%;
+    transform: translate(-50%, -50%);
+    transition: top 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                left 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), 
+                width 1.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* ============================================
+   FAIRY LIGHTS ASSET
+   ============================================ */
+.lofi-fairy-lights {
+    position: absolute;
+    top: -4%; /* Pulled down just slightly so they drape beautifully */
+    left: 0;
+    width: 100%;
+    z-index: 55;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-100vh);
+    transition: transform 1.8s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 1.5s ease;
+    transition-delay: 0.2s; /* Drops in slightly after the table starts sliding */
+}
+
+body.table-active .lofi-fairy-lights {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 
 
 
