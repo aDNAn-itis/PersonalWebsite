@@ -73,6 +73,8 @@ body {
     cursor: pointer;
 }
 
+
+
 /* Transparent Overlay Modal */
 .info-panels-modal {
     position: absolute;
@@ -158,6 +160,19 @@ body.table-active .lofi-table-container {
 .lofi-table {
     width: 100%;
     display: block;
+}
+
+/* Hide table scene items by default, then show and slide them up when the table is active */
+.table-scene-item {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(100vh);
+    transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.8s ease;
+}
+
+body.table-active .table-scene-item {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Move the open laptop to the CENTER when the table slides in */
@@ -344,7 +359,7 @@ body.about-active .about-back-btn {
 }
 
 /* Dedicated Back Button for Bike Scene */
-.bike-back-btn {
+.bike-back-btn, .bookshelf-back-btn {
     display: none;
     position: absolute;
     top: 40px;
@@ -356,14 +371,17 @@ body.about-active .about-back-btn {
     border: 1px solid rgba(255, 255, 255, 0.5);
     padding: 12px 24px;
     border-radius: 30px;
-    color: #222;
-    font-weight: 600;
+    font-size: 1.1rem;
+    color: #333;
     font-family: 'Inter', sans-serif;
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(0,0,0,0.15);
     transition: all 0.5s ease;
 }
 body.bike-active .bike-back-btn {
+    display: block;
+}
+body.bookshelf-active .bookshelf-back-btn {
     display: block;
 }
 
@@ -441,3 +459,133 @@ body.night-mode .close-btn:hover {
     background: rgba(255,255,255,0.9);
     color: #111;
 }
+
+/* ============================================
+   POMODORO TIMER SCENE
+   ============================================ */
+.pomodoro-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80vw;
+    height: 80vh;
+    max-width: 1200px;
+    transform: translate(-50%, -40%);
+    z-index: 100;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.8s ease, transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    filter: drop-shadow(0 25px 40px rgba(0,0,0,0.5));
+    overflow: hidden;
+    border-radius: 20px;
+}
+
+body.bookshelf-active .pomodoro-container {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+}
+
+body.bookshelf-active .hitbox-container {
+    pointer-events: none;
+}
+
+/* Layering the scene */
+.pomodoro-bg,
+.pomodoro-char,
+.pomodoro-window {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+.pomodoro-bg { z-index: 1; }
+.pomodoro-char { z-index: 2; object-fit: contain; transform-origin: bottom center; }
+.pomodoro-window { z-index: 3; }
+
+/* Glassmorphism UI */
+.pomodoro-ui {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 20px 30px;
+    text-align: center;
+    color: white;
+    font-family: 'Courier New', Courier, monospace;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+#timer-display {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.timer-controls button {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 8px 16px;
+    margin: 0 5px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.timer-controls button:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Character Animations */
+.char-dip {
+    animation: dip-swap 1s ease-in-out;
+}
+
+@keyframes dip-swap {
+    0% { transform: translateY(0); }
+    40% { transform: translateY(100%); opacity: 0; }
+    60% { transform: translateY(100%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+
+.char-jump {
+    animation: happy-jump 0.6s cubic-bezier(0.28, 0.84, 0.42, 1) infinite alternate;
+}
+
+@keyframes happy-jump {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-15%); }
+}
+
+/* ============================================
+   REALISTIC COFFEE STEAM ANIMATION
+   ============================================ */
+.smoke-puff {
+    animation: drift-up 4s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    opacity: 0;
+}
+.puff-1 { animation-delay: 0s; animation-duration: 4s; }
+.puff-2 { animation-delay: 1.2s; animation-duration: 3.5s; }
+.puff-3 { animation-delay: 2.5s; animation-duration: 4.5s; }
+
+@keyframes drift-up {
+    0% { transform: translateY(0) translateX(0) scale(0.5); opacity: 0; }
+    30% { opacity: 0.8; }
+    70% { opacity: 0.6; }
+    100% { transform: translateY(-80px) translateX(15px) scale(2.5); opacity: 0; }
+}
+

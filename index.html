@@ -31,6 +31,27 @@
             <img class="lofi-table" id="lofi-table" src="assets/projects/table_transparent.png" alt="Lofi Desk">
         </div>
         
+        <!-- McCafe Coffee Cup (shows up with the table) -->
+        <div id="coffee" class="table-scene-item" style="position: absolute; top: 45%; left: 65%; width: 4%; height: auto; z-index: 50;">
+            <!-- Realistic Smoke Fumes -->
+            <svg viewBox="0 0 100 150" width="200%" height="150px" xmlns="http://www.w3.org/2000/svg" style="overflow: visible; position: absolute; top: -100px; left: -50%; pointer-events: none; z-index: 100;">
+              <defs>
+                <filter id="realistic-smoke">
+                  <feTurbulence type="fractalNoise" baseFrequency="0.02 0.05" numOctaves="4" result="noise" />
+                  <feDisplacementMap in="SourceGraphic" in2="noise" scale="25" xChannelSelector="R" yChannelSelector="G" result="displaced" />
+                  <feGaussianBlur in="displaced" stdDeviation="3" />
+                </filter>
+              </defs>
+              <g filter="url(#realistic-smoke)">
+                <circle cx="50" cy="140" r="12" fill="#999" class="smoke-puff puff-1" />
+                <circle cx="45" cy="130" r="10" fill="#bbb" class="smoke-puff puff-2" />
+                <circle cx="55" cy="145" r="14" fill="#888" class="smoke-puff puff-3" />
+              </g>
+            </svg>
+            <!-- Real Cup Image -->
+            <img src="assets/mccafe_cup.png" alt="McCafe Cup" style="width: 100%; display: block; filter: drop-shadow(4px 4px 10px rgba(0,0,0,.4));" />
+        </div>
+        
         <img class="lofi-fairy-lights thick-lights" src="assets/projects/fairy_lights_thick.png" alt="Thick Fairy Lights">
 
         <!-- Laptop Opening Animation Frame -->
@@ -59,6 +80,9 @@
 
         <!-- Bike Scene Back Button -->
         <button id="bike-back-btn" class="close-btn bike-back-btn">&larr; Back to Desk</button>
+        
+        <!-- Bookshelf Scene Back Button -->
+        <button id="bookshelf-back-btn" class="close-btn bookshelf-back-btn">&larr; Back to Desk</button>
         
         <section class="info-panels-modal" id="modal-overlay">
             <button class="close-btn" id="close-btn">&larr; Back to Desk</button>
@@ -104,6 +128,22 @@
             </div>
         </section>
         
+    </div>
+    
+    <!-- Pomodoro Timer Room Scene -->
+    <div id="pomodoro-scene" class="pomodoro-container">
+        <img class="pomodoro-bg" src="assets/pomodoro/scenery_bg.jpg" alt="Background">
+        <img class="pomodoro-char" id="pomodoro-character" src="assets/pomodoro/anime_cat.png" alt="Character">
+        <img class="pomodoro-window" src="assets/pomodoro/window_frame.png" alt="Window">
+        
+        <div class="pomodoro-ui glass-panel">
+            <div id="timer-display">25:00</div>
+            <div class="timer-controls">
+                <button id="pomo-start">Start</button>
+                <button id="pomo-pause">Pause</button>
+                <button id="pomo-break">Break</button>
+            </div>
+        </div>
     </div>
     
     <!-- Theme Toggle Button moved outside the scaled container so it is always visible -->
@@ -170,6 +210,18 @@
                     return;
                 }
                 
+                // If they click the books, transition to the Bookshelf!
+                if (targetName === 'books') {
+                    document.body.classList.add('bookshelf-active');
+                    
+                    // Fade out all items on the desk for a clean transition
+                    document.querySelectorAll('.interactive-item').forEach(item => {
+                        item.style.opacity = '0';
+                    });
+                    
+                    return; // Prevent normal panel popup
+                }
+                
                 // Otherwise, normal cinematic isolation for desk objects (e.g. clicking the bag)
                 document.body.classList.remove('about-active');
                 document.body.classList.remove('bike-active');
@@ -203,6 +255,14 @@
             document.body.classList.remove('table-active');
             document.body.classList.remove('laptop-opening');
             stopBikeAnimation();
+        });
+        
+        // Bookshelf Scene Back Button Logic
+        document.getElementById('bookshelf-back-btn').addEventListener('click', () => {
+            document.body.classList.remove('bookshelf-active');
+            document.querySelectorAll('.interactive-item').forEach(item => {
+                item.style.opacity = '1';
+            });
         });
 
         // ----------------------------------------------------
@@ -325,6 +385,84 @@
                 themeToggle.innerText = '🌙 Night Mode';
             }
         });
+        // ==========================================
+        // POMODORO TIMER LOGIC
+        // ==========================================
+        let pomoInterval;
+        let timeRemaining = 25 * 60; // 25 minutes in seconds
+        let isTimerRunning = false;
+        const timerDisplay = document.getElementById('timer-display');
+        const pomoChar = document.getElementById('pomodoro-character');
+
+        // Helper to format time
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        // Timer Tick
+        function updateTimer() {
+            if (timeRemaining > 0) {
+                timeRemaining--;
+                timerDisplay.innerText = formatTime(timeRemaining);
+                
+                // Character Swap Every 5 minutes (300 seconds)
+                // Since we count down, we check if elapsed is multiple of 300
+                const elapsed = (25 * 60) - timeRemaining;
+                if (elapsed > 0 && elapsed % 300 === 0) {
+                    triggerCharacterSwap();
+                }
+            } else {
+                clearInterval(pomoInterval);
+                isTimerRunning = false;
+                alert("Time's up!");
+            }
+        }
+
+        document.getElementById('pomo-start').addEventListener('click', () => {
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                pomoInterval = setInterval(updateTimer, 1000);
+                pomoChar.classList.remove('char-jump'); // Stop jumping if coming from break
+            }
+        });
+
+        document.getElementById('pomo-pause').addEventListener('click', () => {
+            isTimerRunning = false;
+            clearInterval(pomoInterval);
+        });
+
+        document.getElementById('pomo-break').addEventListener('click', () => {
+            // 5 Minute Break
+            isTimerRunning = false;
+            clearInterval(pomoInterval);
+            timeRemaining = 5 * 60;
+            timerDisplay.innerText = formatTime(timeRemaining);
+            
+            // Happy jumping animation
+            pomoChar.classList.add('char-jump');
+        });
+
+        // Character Swap Animation Logic
+        function triggerCharacterSwap() {
+            pomoChar.classList.add('char-dip');
+            
+            // Halfway through the dip animation (500ms), swap the source image
+            setTimeout(() => {
+                if (pomoChar.src.includes('anime_cat.png')) {
+                    pomoChar.src = 'assets/pomodoro/anime_spirit.png';
+                } else {
+                    pomoChar.src = 'assets/pomodoro/anime_cat.png';
+                }
+            }, 500);
+
+            // Remove animation class after it finishes so it can be re-triggered later
+            setTimeout(() => {
+                pomoChar.classList.remove('char-dip');
+            }, 1000);
+        }
+
     </script>
 </body>
 </html>
