@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'Patrick Hand';
+    src: url('assets/fonts/patrick-hand.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 body {
     margin: 0;
     padding: 0;
@@ -143,7 +151,7 @@ body.laptop-opening #laptop {
     position: absolute;
     width: 90%;
     left: 5%;
-    top: 25%; /* Shifted up so the tabletop is centered */
+    top: 45%; /* Shifted down again */
     z-index: 45; /* Under the laptop */
     opacity: 0;
     pointer-events: none;
@@ -162,6 +170,71 @@ body.table-active .lofi-table-container {
     display: block;
 }
 
+/* ============================================
+   LOFI GLASS WINDOW
+   ============================================ */
+
+.lofi-window {
+    position: absolute;
+    top: 21%;
+    left: 21%;
+    width: 58%;
+    aspect-ratio: 1774 / 887;
+    z-index: 30;
+    overflow: hidden;
+    filter: drop-shadow(0 12px 16px rgba(68, 52, 36, 0.28));
+}
+
+.window-view-container,
+.window-glass-glow {
+    position: absolute;
+    top: 15.3%;
+    left: 10.3%;
+    width: 79.5%;
+    height: 67.2%;
+    overflow: hidden;
+}
+
+.window-view-container {
+    z-index: 1;
+    background: #10152a;
+}
+
+#window-view-img {
+    display: block;
+    width: 2000%;
+    height: 100%;
+    object-fit: fill;
+    max-width: none;
+    transform-origin: left top;
+    animation: play-window 2.8s steps(20, end) infinite;
+}
+
+.window-glass-glow {
+    z-index: 2;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 12% 9%, rgba(255, 211, 120, .23) 0 1.2%, transparent 4%),
+        radial-gradient(circle at 88% 13%, rgba(255, 205, 105, .18) 0 1%, transparent 3.5%),
+        linear-gradient(116deg, transparent 4%, rgba(255,255,255,.18) 8%, rgba(255,255,255,.04) 14%, transparent 21%),
+        linear-gradient(116deg, transparent 56%, rgba(255,244,224,.12) 61%, transparent 68%),
+        linear-gradient(to bottom, rgba(154, 183, 218, .13), transparent 42%, rgba(255, 190, 121, .05));
+    box-shadow:
+        inset 0 0 0 1px rgba(232, 242, 255, .28),
+        inset 0 0 26px rgba(126, 159, 196, .13),
+        inset 0 -12px 20px rgba(255, 190, 111, .06);
+    opacity: .9;
+}
+
+.lofi-window-frame {
+    position: relative;
+    z-index: 3;
+    display: block;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
 /* Hide table scene items by default, then show and slide them up when the table is active */
 .table-scene-item {
     opacity: 0;
@@ -177,7 +250,7 @@ body.table-active .table-scene-item {
 
 /* Move the open laptop to the CENTER when the table slides in */
 body.table-active .laptop-scene-item {
-    top: 44%; /* Reverted to the perfect position */
+    top: 64%; /* Reverted to the perfect position, shifted down again */
     left: 50%; /* Centered on the desk */
     width: 25%;
     transform: translate(-50%, -50%);
@@ -206,6 +279,218 @@ body.table-active .laptop-scene-item {
 body.table-active .lofi-fairy-lights {
     opacity: 1;
     transform: translateY(0);
+}
+
+/* Room 3 — the window is replaced entirely by a cafe menu blackboard. */
+body[data-room="room3"] .lofi-window {
+    top: 19%;
+    left: 24%;
+    width: 52%;
+    aspect-ratio: 1659 / 948;
+    overflow: visible;
+    z-index: 48;
+    filter: drop-shadow(0 13px 18px rgba(65, 44, 25, .3));
+}
+
+/* Let Room 3's board controls receive clicks through the otherwise transparent
+   modal while keeping its Back button available. */
+body[data-room="room3"] .info-panels-modal.modal-active {
+    pointer-events: none;
+}
+
+body[data-room="room3"] .info-panels-modal.modal-active .close-btn {
+    pointer-events: auto;
+}
+
+body[data-room="room3"] .window-view-container,
+body[data-room="room3"] .window-glass-glow {
+    display: none;
+}
+
+.blackboard-project-layer {
+    display: none;
+}
+
+body[data-room="room3"] .blackboard-project-layer {
+    position: absolute;
+    z-index: 5;
+    top: 13%;
+    left: 13%;
+    width: 74%;
+    height: 69%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    color: rgba(246, 231, 190, .94);
+    font-family: 'Patrick Hand', 'Segoe Print', cursive;
+    text-shadow: 0 0 1px rgba(255,255,255,.35);
+    pointer-events: auto;
+}
+
+.chalk-kicker {
+    min-height: 1.1em;
+    margin-top: 2%;
+    font: 400 clamp(8px, .84vw, 14px)/1.2 'Patrick Hand', cursive;
+    letter-spacing: .12em;
+    opacity: .75;
+}
+
+.blackboard-project-layer h2 {
+    min-height: 1.2em;
+    margin: 1.5% 0 1%;
+    font-size: clamp(20px, 3.1vw, 48px);
+    line-height: 1;
+    font-weight: 400;
+}
+
+.blackboard-project-layer p {
+    white-space: pre-line;
+}
+
+#chalk-description {
+    min-height: 3.4em;
+    max-width: 76%;
+    margin: 1% 0;
+    font-size: clamp(9px, 1.05vw, 17px);
+    line-height: 1.42;
+}
+
+.chalk-stack {
+    min-height: 1.2em;
+    max-width: 75%;
+    margin: 1.5% 0 0;
+    color: rgba(218, 232, 205, .86);
+    font: clamp(8px, .84vw, 14px)/1.3 'Patrick Hand', cursive;
+}
+
+#chalk-project-link {
+    margin-top: auto;
+    color: #f2d79f;
+    font-size: clamp(8px, .82vw, 14px);
+    text-decoration: underline wavy rgba(242, 215, 159, .55);
+    text-underline-offset: 4px;
+    opacity: 0;
+    transform: translateY(5px);
+    transition: opacity .35s ease, transform .35s ease;
+}
+
+#chalk-project-link.is-visible {
+    opacity: .9;
+    transform: translateY(0);
+}
+
+.blackboard-project-controls {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: rgba(246, 231, 190, .78);
+    font: 400 clamp(8px, .76vw, 13px)/1 'Patrick Hand', cursive;
+}
+
+.blackboard-project-controls button {
+    min-width: 22px;
+    padding: 0 3px;
+    color: rgba(246, 231, 190, .92);
+    font: 700 clamp(17px, 1.8vw, 28px)/1 'Patrick Hand', cursive;
+    text-shadow: 0 0 1px rgba(255,255,255,.45);
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    cursor: pointer;
+    transition: color .18s ease, transform .18s ease;
+}
+
+.blackboard-project-controls button:hover {
+    color: #fff1c8;
+    transform: scale(1.12);
+}
+
+.animated-chalk {
+    position: absolute;
+    z-index: 8;
+    left: 0;
+    top: 0;
+    width: clamp(12px, 1.4vw, 22px);
+    height: clamp(3px, .32vw, 5px);
+    border-radius: 4px;
+    background: #f1dfb5;
+    box-shadow: 0 0 4px rgba(255,245,210,.5);
+    opacity: 0;
+    transform: rotate(-12deg);
+    transition: left .13s ease-out, top .13s ease-out, opacity .18s ease;
+}
+
+.is-writing .animated-chalk {
+    opacity: 1;
+}
+
+.chalk-word {
+    display: inline-block;
+    opacity: 0;
+    filter: blur(1.5px);
+    transform-origin: left bottom;
+}
+
+.chalk-word.is-visible {
+    opacity: 1;
+    filter: blur(0);
+    animation: chalk-word-appears .28s ease-out both;
+}
+
+.chalk-word.is-erased {
+    animation: chalk-word-erases .2s ease-in forwards;
+}
+
+.animated-duster {
+    position: absolute;
+    z-index: 9;
+    top: 0;
+    left: 0;
+    width: clamp(44px, 6vw, 92px);
+    aspect-ratio: 2020 / 778;
+    height: auto;
+    background: url('assets/rooms/room3/duster.png') center / contain no-repeat;
+    filter: drop-shadow(0 3px 4px rgba(0,0,0,.4));
+    opacity: 0;
+    transform-origin: center;
+}
+
+.is-erasing .animated-duster {
+    opacity: 1;
+}
+
+.chalk-dust-puff {
+    position: absolute;
+    z-index: 7;
+    width: clamp(14px, 2.2vw, 34px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(circle, rgba(226, 222, 205, .26), rgba(204, 207, 198, .08) 45%, transparent 72%);
+    transform: translate(-50%, -50%);
+    animation: chalk-dust-drift .6s ease-out forwards;
+}
+
+@keyframes chalk-word-appears {
+    0% { opacity: 0; filter: blur(2px); clip-path: inset(0 100% 0 0); }
+    55% { opacity: .72; }
+    100% { opacity: 1; filter: blur(0); clip-path: inset(0 0 0 0); }
+}
+
+@keyframes chalk-word-erases {
+    0% { opacity: 1; filter: blur(0); }
+    45% { opacity: .45; filter: blur(1px); transform: scaleX(.92); }
+    100% { opacity: 0; filter: blur(3px); transform: scaleX(.75); }
+}
+
+@keyframes chalk-dust-drift {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(.45); }
+    28% { opacity: .75; }
+    100% { opacity: 0; transform: translate(-38%, -85%) scale(1.65); }
 }
 
 
@@ -589,3 +874,10 @@ body.bookshelf-active .hitbox-container {
     100% { transform: translateY(-80px) translateX(15px) scale(2.5); opacity: 0; }
 }
 
+/* ============================================
+   WINDOW VIEW ANIMATION
+   ============================================ */
+@keyframes play-window {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-95%); }
+}

@@ -6,10 +6,10 @@
     <title>Interactive Layered Portfolio</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body data-room="room3">
 
     <div class="scene-container">
-        
+
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
 
         <!-- Bike Scene Animation Frame -->
@@ -25,14 +25,36 @@
         <img class="interactive-item" id="laptop" src="assets/a/laptop_transparent.png" alt="Laptop">
         <img class="interactive-item" id="paper" src="assets/a/paper_transparent.png" alt="Paper & Pen">
         <img class="interactive-item" id="phone" src="assets/a/phone_transparent.png" alt="Phone">
-        
+
+        <!-- Cafe project blackboard -->
+        <div id="lofi-window" class="table-scene-item lofi-window">
+            <img class="lofi-window-frame" src="assets/rooms/room3/blackboard.png" alt="Cafe project blackboard">
+
+            <section class="blackboard-project-layer" aria-live="polite" aria-label="Featured projects">
+                <span class="chalk-kicker" id="chalk-kicker"></span>
+                <h2 id="chalk-title"></h2>
+                <p id="chalk-description"></p>
+                <p class="chalk-stack" id="chalk-stack"></p>
+                <a id="chalk-project-link" href="#" target="_blank" rel="noopener noreferrer">Open project ↗</a>
+
+                <div class="blackboard-project-controls">
+                    <button id="project-prev" type="button" aria-label="Previous project">&lt;</button>
+                    <span id="project-count">01 / 02</span>
+                    <button id="project-next" type="button" aria-label="Next project">&gt;</button>
+                </div>
+
+                <span class="animated-chalk" aria-hidden="true"></span>
+                <span class="animated-duster" aria-hidden="true"></span>
+            </section>
+        </div>
+
         <!-- Lofi Room Transition Assets -->
         <div class="lofi-table-container">
-            <img class="lofi-table" id="lofi-table" src="assets/projects/table_transparent.png" alt="Lofi Desk">
+            <img class="lofi-table" id="lofi-table" src="assets/rooms/room3/table.png" alt="Lofi Desk">
         </div>
         
         <!-- McCafe Coffee Cup (shows up with the table) -->
-        <div id="coffee" class="table-scene-item" style="position: absolute; top: 45%; left: 65%; width: 4%; height: auto; z-index: 50;">
+        <div id="coffee" class="table-scene-item" style="position: absolute; top: 65%; left: 65%; width: 4%; height: auto; z-index: 50;">
             <!-- Realistic Smoke Fumes -->
             <svg viewBox="0 0 100 150" width="200%" height="150px" xmlns="http://www.w3.org/2000/svg" style="overflow: visible; position: absolute; top: -100px; left: -50%; pointer-events: none; z-index: 100;">
               <defs>
@@ -49,10 +71,10 @@
               </g>
             </svg>
             <!-- Real Cup Image -->
-            <img src="assets/mccafe_cup.png" alt="McCafe Cup" style="width: 100%; display: block; filter: drop-shadow(4px 4px 10px rgba(0,0,0,.4));" />
+            <img id="room-coffee-img" src="assets/rooms/room3/coffee.png" alt="McCafe Cup" style="width: 100%; display: block; filter: drop-shadow(4px 4px 10px rgba(0,0,0,.4));" />
         </div>
         
-        <img class="lofi-fairy-lights thick-lights" src="assets/projects/fairy_lights_thick.png" alt="Thick Fairy Lights">
+        <img id="room-lights-img" class="lofi-fairy-lights thick-lights" src="assets/rooms/room3/lights.png" alt="Thick Fairy Lights">
 
         <!-- Laptop Opening Animation Frame -->
         <img class="laptop-scene-item" id="laptop-animator" src="assets/laptop_open/f0.png" alt="Laptop Opening Animation">
@@ -196,6 +218,7 @@
                     playLaptopAnimation(() => {
                         // After laptop finishes opening, slide up the table!
                         document.body.classList.add('table-active');
+                        writeProject(currentProject, true);
                         
                         // Show the text modal after the table slides up so the user gets the Back button
                         setTimeout(() => {
@@ -385,6 +408,185 @@
                 themeToggle.innerText = '🌙 Night Mode';
             }
         });
+
+        // Room 3 chalkboard portfolio
+        const chalkboardProjects = [
+            {
+                kicker: 'ASTROPHYSICS · INTERACTIVE DASHBOARD',
+                title: 'FlyingRay',
+                description: 'Explore and organize X-ray observations across missions.\nQuick-look plots reveal how black-hole binaries evolve.',
+                stack: 'Python · Stingray · Panel · Plotly · Matplotlib',
+                url: 'https://github.com/StingraySoftware/FlyingRay'
+            },
+            {
+                kicker: 'SCIENCE DATA · WEB PLATFORM',
+                title: 'NICER Website',
+                description: 'A new web interface for browsing NICER mission data.\nDatabase tools keep observations organized and discoverable.',
+                stack: 'Django · Python · JavaScript · HTML · CSS',
+                url: 'https://github.com/EthanTreg/Nicer_Website'
+            }
+        ];
+
+        const blackboardLayer = document.querySelector('.blackboard-project-layer');
+        const chalkKicker = document.getElementById('chalk-kicker');
+        const chalkTitle = document.getElementById('chalk-title');
+        const chalkDescription = document.getElementById('chalk-description');
+        const chalkStack = document.getElementById('chalk-stack');
+        const chalkLink = document.getElementById('chalk-project-link');
+        const projectCount = document.getElementById('project-count');
+        let currentProject = 0;
+        let chalkTimers = [];
+        let projectTransitionTimer;
+        let dusterAnimation;
+
+        function stopChalkWriting() {
+            chalkTimers.forEach(clearTimeout);
+            chalkTimers = [];
+            clearTimeout(projectTransitionTimer);
+            if (dusterAnimation) {
+                dusterAnimation.cancel();
+                dusterAnimation = null;
+            }
+        }
+
+        function moveChalkTo(word) {
+            const chalk = blackboardLayer.querySelector('.animated-chalk');
+            chalk.style.left = `${word.offsetLeft + word.offsetWidth - 2}px`;
+            chalk.style.top = `${word.offsetTop + word.offsetHeight * .72}px`;
+        }
+
+        function makeChalkDust(word) {
+            const dust = document.createElement('span');
+            dust.className = 'chalk-dust-puff';
+            dust.style.left = `${word.offsetLeft + word.offsetWidth / 2}px`;
+            dust.style.top = `${word.offsetTop + word.offsetHeight / 2}px`;
+            blackboardLayer.appendChild(dust);
+            setTimeout(() => dust.remove(), 620);
+        }
+
+        function chalkWriteWords(element, text, startDelay, wordSpeed = 150) {
+            element.textContent = '';
+            const words = [];
+
+            text.split(/(\s+)/).forEach(token => {
+                if (!token) return;
+                if (/^\s+$/.test(token)) {
+                    element.appendChild(document.createTextNode(token));
+                    return;
+                }
+
+                const word = document.createElement('span');
+                word.className = 'chalk-word';
+                word.textContent = token;
+                element.appendChild(word);
+                words.push(word);
+            });
+
+            words.forEach((word, index) => {
+                const timer = setTimeout(() => {
+                    moveChalkTo(word);
+                    word.classList.add('is-visible');
+                }, startDelay + index * wordSpeed);
+                chalkTimers.push(timer);
+            });
+
+            return startDelay + words.length * wordSpeed;
+        }
+
+        function eraseWrittenWords(callback) {
+            const words = [...blackboardLayer.querySelectorAll('.chalk-word.is-visible:not(.is-erased)')];
+            blackboardLayer.classList.remove('is-writing');
+            blackboardLayer.classList.add('is-erasing');
+            chalkLink.classList.remove('is-visible');
+
+            if (!words.length) {
+                callback();
+                return;
+            }
+
+            // A real hand does not erase in perfect reading order. Randomize the
+            // targets so the static duster travels through overlapping diagonal,
+            // horizontal, and vertical strokes across the written area.
+            const route = [...words];
+            for (let i = route.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [route[i], route[j]] = [route[j], route[i]];
+            }
+
+            const duster = blackboardLayer.querySelector('.animated-duster');
+            const duration = Math.max(1500, route.length * 145);
+            const keyframes = route.map((word, index) => {
+                const jitterX = (Math.random() - .5) * 24;
+                const jitterY = (Math.random() - .5) * 13;
+                return {
+                    offset: route.length === 1 ? 1 : index / (route.length - 1),
+                    transform: `translate(${word.offsetLeft + jitterX}px, ${word.offsetTop + jitterY}px) rotate(${(Math.random() - .5) * 18}deg)`
+                };
+            });
+
+            dusterAnimation = duster.animate(keyframes, {
+                duration,
+                easing: 'ease-in-out',
+                fill: 'forwards'
+            });
+
+            route.forEach((word, index) => {
+                chalkTimers.push(setTimeout(() => {
+                    word.classList.add('is-erased');
+                    makeChalkDust(word);
+                }, (duration * index) / Math.max(1, route.length - 1)));
+            });
+
+            projectTransitionTimer = setTimeout(() => {
+                dusterAnimation = null;
+                callback();
+            }, duration + 240);
+        }
+
+        function writeProject(index, immediate = false) {
+            stopChalkWriting();
+            const project = chalkboardProjects[index];
+
+            const beginWriting = () => {
+                blackboardLayer.classList.remove('is-erasing');
+                blackboardLayer.classList.add('is-writing');
+                chalkLink.classList.remove('is-visible');
+                chalkLink.href = project.url;
+                projectCount.textContent = `${String(index + 1).padStart(2, '0')} / ${String(chalkboardProjects.length).padStart(2, '0')}`;
+
+                let delay = immediate ? 0 : 120;
+                delay = chalkWriteWords(chalkKicker, project.kicker, delay, 125) + 90;
+                delay = chalkWriteWords(chalkTitle, project.title, delay, 240) + 120;
+                delay = chalkWriteWords(chalkDescription, project.description, delay, 145) + 130;
+                delay = chalkWriteWords(chalkStack, project.stack, delay, 115) + 80;
+
+                chalkTimers.push(setTimeout(() => {
+                    chalkLink.classList.add('is-visible');
+                    blackboardLayer.classList.remove('is-writing');
+                }, delay));
+            };
+
+            if (immediate && !chalkTitle.textContent) {
+                beginWriting();
+                return;
+            }
+
+            eraseWrittenWords(() => {
+                chalkKicker.textContent = '';
+                chalkTitle.textContent = '';
+                chalkDescription.textContent = '';
+                chalkStack.textContent = '';
+                beginWriting();
+            });
+        }
+
+        function changeProject(direction) {
+            currentProject = (currentProject + direction + chalkboardProjects.length) % chalkboardProjects.length;
+            writeProject(currentProject);
+        }
+
+        document.getElementById('project-prev').addEventListener('click', () => changeProject(-1));
+        document.getElementById('project-next').addEventListener('click', () => changeProject(1));
         // ==========================================
         // POMODORO TIMER LOGIC
         // ==========================================
