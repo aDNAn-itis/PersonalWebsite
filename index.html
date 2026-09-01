@@ -79,6 +79,14 @@
         <!-- Laptop Opening Animation Frame -->
         <img class="laptop-scene-item" id="laptop-animator" src="assets/laptop_open/f0.png" alt="Laptop Opening Animation">
 
+        <!-- In-place Cosmos book magic; the original two-book layer remains untouched below it. -->
+        <section id="cosmos-magic" class="cosmos-magic" aria-label="Cosmos book opening with starlight">
+            <img id="cosmos-animator" class="cosmos-animator" src="assets/cosmos_magic/f0.png" alt="Thin Cosmos paperback opening">
+            <div class="cosmos-wind" aria-hidden="true">
+                <i></i><i></i><i></i><i></i>
+            </div>
+        </section>
+
         <!-- Invisible Hitboxes for accurate hovering -->
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
@@ -233,16 +241,10 @@
                     return;
                 }
                 
-                // If they click the books, transition to the Bookshelf!
+                // Keep both books in place and animate only Cosmos on top.
                 if (targetName === 'books') {
-                    document.body.classList.add('bookshelf-active');
-                    
-                    // Fade out all items on the desk for a clean transition
-                    document.querySelectorAll('.interactive-item').forEach(item => {
-                        item.style.opacity = '0';
-                    });
-                    
-                    return; // Prevent normal panel popup
+                    playCosmosMagic();
+                    return;
                 }
                 
                 // Otherwise, normal cinematic isolation for desk objects (e.g. clicking the bag)
@@ -385,6 +387,48 @@
                 laptopAnimator.src = laptopFrames[currentLaptopFrame].src;
             }, 250); // 250ms per frame (slowed down)
         }
+
+        // ----------------------------------------------------
+        // In-place Cosmos Book Magic
+        // ----------------------------------------------------
+        const cosmosMagic = document.getElementById('cosmos-magic');
+        const cosmosAnimator = document.getElementById('cosmos-animator');
+        const cosmosFrames = [];
+        for (let i = 0; i <= 6; i++) {
+            const img = new Image();
+            img.src = `assets/cosmos_magic/f${i}.png`;
+            cosmosFrames[i] = img;
+        }
+        const cosmosSequence = [0, 1, 2, 3, 4, 5, 4, 5, 4, 5, 6];
+        const cosmosDelays = [0, 135, 245, 325, 385, 430, 470, 510, 550, 595, 690];
+        let cosmosAnimationTimers = [];
+
+        function setCosmosFrame(frame) {
+            cosmosAnimator.src = cosmosFrames[frame].src;
+        }
+
+        function playCosmosMagic() {
+            cosmosAnimationTimers.forEach(clearTimeout);
+            cosmosAnimationTimers = [];
+            cosmosMagic.classList.remove('is-active', 'wind-active', 'is-settled');
+            document.body.classList.remove('cosmos-magic-active');
+            document.getElementById('books').classList.remove('is-hovered');
+            void cosmosMagic.offsetWidth;
+
+            cosmosSequence.forEach((frame, index) => {
+                const timer = setTimeout(() => {
+                    setCosmosFrame(frame);
+                    if (index === 0) {
+                        document.body.classList.add('cosmos-magic-active');
+                        cosmosMagic.classList.add('is-active');
+                    }
+                    if (frame >= 3) cosmosMagic.classList.add('wind-active');
+                    if (index === cosmosSequence.length - 1) cosmosMagic.classList.add('is-settled');
+                }, cosmosDelays[index]);
+                cosmosAnimationTimers.push(timer);
+            });
+        }
+
         // Close Modal Logic - Restore the scene
         document.getElementById('close-btn').addEventListener('click', () => {
             document.getElementById('modal-overlay').classList.remove('modal-active');
