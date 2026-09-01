@@ -340,6 +340,36 @@ body.cosmos-magic-active #books {
     to { opacity: 0; transform: translateX(-42%) skewX(-18deg); }
 }
 
+/* ============================================
+   HEADPHONE CABLE CONNECTION
+   ============================================ */
+.headphone-connect {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 14;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.headphone-connect.is-active {
+    opacity: 1;
+}
+
+body.headphone-connected #headphone,
+body.headphone-connected #phone {
+    opacity: 0 !important;
+}
+
+.headphone-connect-animator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
 /* Room 3 — the window is replaced entirely by a cafe menu blackboard. */
 body[data-room="room3"] .lofi-window {
     top: 19%;

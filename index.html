@@ -87,6 +87,10 @@
             </div>
         </section>
 
+        <section id="headphone-connect" class="headphone-connect" aria-label="Headphone cable connecting to the phone">
+            <img id="headphone-connect-animator" class="headphone-connect-animator" src="assets/headphone_connect/f0.png" alt="Headphone cable connection animation">
+        </section>
+
         <!-- Invisible Hitboxes for accurate hovering -->
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
@@ -244,6 +248,11 @@
                 // Keep both books in place and animate only Cosmos on top.
                 if (targetName === 'books') {
                     playCosmosMagic();
+                    return;
+                }
+
+                if (targetName === 'headphone') {
+                    playHeadphoneConnection();
                     return;
                 }
                 
@@ -426,6 +435,41 @@
                     if (index === cosmosSequence.length - 1) cosmosMagic.classList.add('is-settled');
                 }, cosmosDelays[index]);
                 cosmosAnimationTimers.push(timer);
+            });
+        }
+
+        // ----------------------------------------------------
+        // Headphone cable connection
+        // ----------------------------------------------------
+        const headphoneConnect = document.getElementById('headphone-connect');
+        const headphoneConnectAnimator = document.getElementById('headphone-connect-animator');
+        const headphoneConnectFrames = [];
+        for (let i = 0; i <= 6; i++) {
+            const img = new Image();
+            img.src = `assets/headphone_connect/f${i}.png`;
+            headphoneConnectFrames[i] = img;
+        }
+        const headphoneConnectDelays = [0, 120, 235, 345, 450, 555, 675];
+        let headphoneConnectTimers = [];
+
+        function playHeadphoneConnection() {
+            headphoneConnectTimers.forEach(clearTimeout);
+            headphoneConnectTimers = [];
+            headphoneConnect.classList.remove('is-active', 'is-connected');
+            document.body.classList.remove('headphone-connected');
+            document.getElementById('headphone').classList.remove('is-hovered');
+            void headphoneConnect.offsetWidth;
+
+            headphoneConnectDelays.forEach((delay, frame) => {
+                const timer = setTimeout(() => {
+                    headphoneConnectAnimator.src = headphoneConnectFrames[frame].src;
+                    if (frame === 0) {
+                        document.body.classList.add('headphone-connected');
+                        headphoneConnect.classList.add('is-active');
+                    }
+                    if (frame === 6) headphoneConnect.classList.add('is-connected');
+                }, delay);
+                headphoneConnectTimers.push(timer);
             });
         }
 
