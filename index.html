@@ -16,6 +16,13 @@
         <img class="bike-scene-item" id="bike-animator" src="assets/scene2/frame1.png" alt="Cycling Animation">
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
+        <section id="winter-boy" class="winter-boy" aria-label="Living in Sapporo, Hokkaido">
+            <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=full-winter-v2" alt="Boy putting on a winter cap and muffler">
+            <div class="winter-snow" aria-hidden="true">
+                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <p class="sapporo-note">currently living in<br><strong>Sapporo, Hokkaido</strong></p>
+        </section>
         <!-- Moving the bag up slightly -->
         <img class="interactive-item" id="bag" src="assets/a/bag_transparent.png" alt="Bag" style="top: -3%;">
         <!-- Shifting the books inward by overriding left position -->
@@ -202,6 +209,7 @@
                 });
                 
                 const targetName = box.getAttribute('data-target');
+                resetActiveDeskAnimations(targetName);
                 
 
 
@@ -255,7 +263,12 @@
                     playHeadphoneConnection();
                     return;
                 }
-                
+
+                if (targetName === 'boy') {
+                    playWinterBoy();
+                    return;
+                }
+
                 // Otherwise, normal cinematic isolation for desk objects (e.g. clicking the bag)
                 document.body.classList.remove('about-active');
                 document.body.classList.remove('bike-active');
@@ -270,7 +283,12 @@
                         item.style.transform = 'translateY(-8px) scale(1.03)';
                     }
                 });
-                
+
+                openItemPanel(targetName);
+            });
+        });
+
+        function openItemPanel(targetName) {
                 // Show the specific panel content
                 const targetId = targetName + '-content';
                 const targetPanel = document.getElementById(targetId);
@@ -280,9 +298,9 @@
                 
                 // Fade in the text overlay (which now has a transparent background)
                 document.getElementById('modal-overlay').classList.add('modal-active');
-            });
-        });
-        
+        }
+
+
         // Bike Scene Back Button Logic
         document.getElementById('bike-back-btn').addEventListener('click', () => {
             document.body.classList.remove('bike-active');
@@ -398,6 +416,43 @@
         }
 
         // ----------------------------------------------------
+        // Sapporo winter outfit
+        // ----------------------------------------------------
+        const winterBoy = document.getElementById('winter-boy');
+        const winterBoyAnimator = document.getElementById('winter-boy-animator');
+        const winterFrames = [];
+        const winterVersion = 'full-winter-v2';
+        for (let i = 0; i <= 6; i++) {
+            const img = new Image();
+            img.src = `assets/winter_boy/f${i}.png?v=${winterVersion}`;
+            winterFrames[i] = img;
+        }
+        let winterActive = false;
+        let winterTimers = [];
+
+        function playWinterBoy() {
+            winterTimers.forEach(clearTimeout);
+            winterTimers = [];
+            const sequence = winterActive ? [5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6];
+            winterBoy.classList.add('is-active');
+            document.body.classList.add('winter-boy-active');
+
+            sequence.forEach((frame, index) => {
+                winterTimers.push(setTimeout(() => {
+                    winterBoyAnimator.src = winterFrames[frame].src;
+                    if (index === sequence.length - 1) {
+                        winterActive = !winterActive;
+                        winterBoy.classList.toggle('is-settled', winterActive);
+                        if (!winterActive) {
+                            winterBoy.classList.remove('is-active');
+                            document.body.classList.remove('winter-boy-active');
+                        }
+                    }
+                }, index * 120));
+            });
+        }
+
+        // ----------------------------------------------------
         // In-place Cosmos Book Magic
         // ----------------------------------------------------
         const cosmosMagic = document.getElementById('cosmos-magic');
@@ -473,11 +528,42 @@
             });
         }
 
+        function resetActiveDeskAnimations(exceptTarget = '') {
+            if (exceptTarget !== 'books') {
+                cosmosAnimationTimers.forEach(clearTimeout);
+                cosmosAnimationTimers = [];
+                cosmosMagic.classList.remove('is-active', 'wind-active', 'is-settled');
+                document.body.classList.remove('cosmos-magic-active');
+                document.getElementById('books').classList.remove('is-hovered');
+                setCosmosFrame(0);
+            }
+
+            if (exceptTarget !== 'headphone') {
+                headphoneConnectTimers.forEach(clearTimeout);
+                headphoneConnectTimers = [];
+                headphoneConnect.classList.remove('is-active', 'is-connected');
+                document.body.classList.remove('headphone-connected');
+                document.getElementById('headphone').classList.remove('is-hovered');
+                headphoneConnectAnimator.src = headphoneConnectFrames[0].src;
+            }
+
+            if (exceptTarget !== 'boy') {
+                winterTimers.forEach(clearTimeout);
+                winterTimers = [];
+                winterActive = false;
+                winterBoy.classList.remove('is-active', 'is-settled');
+                document.body.classList.remove('winter-boy-active');
+                winterBoyAnimator.src = winterFrames[0].src;
+                document.getElementById('boy').classList.remove('is-hovered');
+            }
+        }
+
         // Close Modal Logic - Restore the scene
         document.getElementById('close-btn').addEventListener('click', () => {
             document.getElementById('modal-overlay').classList.remove('modal-active');
             document.body.classList.remove('laptop-opening');
             document.body.classList.remove('table-active'); // Hide the table when closing
+            resetActiveDeskAnimations();
             
             // Restore all items back to normal visibility and position
             document.querySelectorAll('.interactive-item').forEach(item => {
