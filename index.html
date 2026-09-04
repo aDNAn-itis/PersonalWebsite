@@ -10,6 +10,9 @@
 
     <div class="scene-container">
 
+        <!-- Ground accumulation stays beneath every illustrated asset. -->
+        <canvas class="snow-piles" id="snow-piles" width="1080" height="723" aria-hidden="true"></canvas>
+
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
 
         <!-- Bike Scene Animation Frame -->
@@ -430,12 +433,121 @@
         let winterActive = false;
         let winterTimers = [];
 
+        // Fill the entire frame with varied flakes. The original eight remain;
+        // extra flakes make this read as weather rather than a character effect.
+        const winterSnowLayer = document.querySelector('.winter-snow');
+        while (winterSnowLayer.querySelectorAll('i').length < 48) {
+            winterSnowLayer.appendChild(document.createElement('i'));
+        }
+        winterSnowLayer.querySelectorAll('i').forEach((flake, index) => {
+            const depth = Math.random();
+            flake.style.setProperty('--snow-x', `${Math.random() * 100}%`);
+            flake.style.setProperty('--snow-size', `${2 + depth * 4.5}px`);
+            flake.style.setProperty('--snow-speed', `${3.4 + (1 - depth) * 4.2}s`);
+            flake.style.setProperty('--snow-delay', `${-Math.random() * 8}s`);
+            flake.style.setProperty('--snow-sway-a', `${-70 + Math.random() * 140}px`);
+            flake.style.setProperty('--snow-sway-b', `${-90 + Math.random() * 180}px`);
+            flake.style.setProperty('--snow-sway-c', `${-65 + Math.random() * 130}px`);
+            flake.style.setProperty('--snow-end', `${-55 + Math.random() * 110}px`);
+            flake.style.setProperty('--snow-alpha', `${.42 + depth * .55}`);
+            flake.style.setProperty('--snow-blur', `${(1 - depth) * .7}px`);
+        });
+
+        // Top-down accumulation is physically layered beneath the artwork, so
+        // transparent asset edges remain exact without a synthetic cutout mask.
+        const snowPileCanvas = document.getElementById('snow-piles');
+        const snowPileContext = snowPileCanvas.getContext('2d');
+        const snowCoverageCanvas = document.createElement('canvas');
+        const snowCoverageContext = snowCoverageCanvas.getContext('2d');
+        snowCoverageCanvas.width = 1080;
+        snowCoverageCanvas.height = 723;
+        const windDrifts = [
+            { x: 170, y: 180, rx: 125, ry: 55 },
+            { x: 850, y: 205, rx: 150, ry: 62 },
+            { x: 280, y: 520, rx: 165, ry: 72 },
+            { x: 780, y: 575, rx: 190, ry: 78 }
+        ];
+        let snowPileRunning = false;
+        let snowPileFrame = 0;
+        let snowPileLastDrop = 0;
+
+        function paintSnowPatch(x, y, radiusX, radiusY, opacity) {
+            snowCoverageContext.save();
+            snowCoverageContext.translate(x, y);
+            snowCoverageContext.scale(radiusX, radiusY);
+            const powder = snowCoverageContext.createRadialGradient(-.12, -.15, .04, 0, 0, 1);
+            powder.addColorStop(0, `rgba(255,255,255,${opacity})`);
+            powder.addColorStop(.58, `rgba(255,255,255,${opacity * .72})`);
+            powder.addColorStop(1, 'rgba(255,255,255,0)');
+            snowCoverageContext.fillStyle = powder;
+            snowCoverageContext.beginPath();
+            snowCoverageContext.arc(0, 0, 1, 0, Math.PI * 2);
+            snowCoverageContext.fill();
+            snowCoverageContext.restore();
+        }
+
+        function dropSettledSnow() {
+            // Most deposits are spread over the complete floor. Occasionally,
+            // wind reinforces one persistent area into a broader natural drift.
+            if (Math.random() < .2) {
+                const drift = windDrifts[Math.floor(Math.random() * windDrifts.length)];
+                paintSnowPatch(
+                    drift.x + (Math.random() - .5) * drift.rx,
+                    drift.y + (Math.random() - .5) * drift.ry,
+                    drift.rx * (.48 + Math.random() * .3),
+                    drift.ry * (.45 + Math.random() * .28),
+                    .07
+                );
+            } else {
+                paintSnowPatch(
+                    Math.random() * 1080,
+                    Math.random() * 723,
+                    48 + Math.random() * 78,
+                    34 + Math.random() * 58,
+                    .052 + Math.random() * .035
+                );
+            }
+        }
+
+        function drawSettledSnow() {
+            snowPileContext.clearRect(0, 0, 1080, 723);
+            snowPileContext.drawImage(snowCoverageCanvas, 0, 0);
+        }
+
+        function growSnowPiles(time) {
+            if (!snowPileRunning) return;
+            if (time - snowPileLastDrop > 100) {
+                // Several visible flakes reach the ground during each interval.
+                // Depositing them independently avoids a synchronized flat edge.
+                const landedFlakes = 3 + Math.floor(Math.random() * 3);
+                for (let i = 0; i < landedFlakes; i++) dropSettledSnow();
+                snowPileLastDrop = time;
+            }
+            drawSettledSnow();
+            snowPileFrame = requestAnimationFrame(growSnowPiles);
+        }
+
+        function startSnowPiles() {
+            if (snowPileRunning) return;
+            snowPileRunning = true;
+            snowPileLastDrop = performance.now();
+            snowPileFrame = requestAnimationFrame(growSnowPiles);
+        }
+
+        function clearSnowPiles() {
+            snowPileRunning = false;
+            cancelAnimationFrame(snowPileFrame);
+            snowCoverageContext.clearRect(0, 0, 1080, 723);
+            snowPileContext.clearRect(0, 0, 1080, 723);
+        }
+
         function playWinterBoy() {
             winterTimers.forEach(clearTimeout);
             winterTimers = [];
             const sequence = winterActive ? [5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6];
             winterBoy.classList.add('is-active');
             document.body.classList.add('winter-boy-active');
+            if (!winterActive) startSnowPiles();
 
             sequence.forEach((frame, index) => {
                 winterTimers.push(setTimeout(() => {
@@ -444,6 +556,7 @@
                         winterActive = !winterActive;
                         winterBoy.classList.toggle('is-settled', winterActive);
                         if (!winterActive) {
+                            clearSnowPiles();
                             winterBoy.classList.remove('is-active');
                             document.body.classList.remove('winter-boy-active');
                         }
@@ -551,6 +664,7 @@
                 winterTimers.forEach(clearTimeout);
                 winterTimers = [];
                 winterActive = false;
+                clearSnowPiles();
                 winterBoy.classList.remove('is-active', 'is-settled');
                 document.body.classList.remove('winter-boy-active');
                 winterBoyAnimator.src = winterFrames[0].src;
