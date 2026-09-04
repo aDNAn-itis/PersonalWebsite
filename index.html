@@ -20,8 +20,16 @@
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
         <section id="winter-boy" class="winter-boy" aria-label="Living in Sapporo, Hokkaido">
+            <div class="winter-snow winter-snow-back" aria-hidden="true"></div>
             <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=full-winter-v2" alt="Boy putting on a winter cap and muffler">
-            <div class="winter-snow" aria-hidden="true">
+            <canvas class="surface-snow" id="cycle-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <canvas class="surface-snow bag-surface-snow" id="bag-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <canvas class="surface-snow books-surface-snow" id="books-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <canvas class="surface-snow" id="headphone-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <canvas class="surface-snow" id="laptop-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <canvas class="surface-snow" id="paper-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <canvas class="surface-snow" id="phone-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
+            <div class="winter-snow winter-snow-front" aria-hidden="true">
                 <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
             <p class="sapporo-note">currently living in<br><strong>Sapporo, Hokkaido</strong></p>
@@ -190,18 +198,21 @@
         </div>
     </div>
     
-    <!-- Theme Toggle Button moved outside the scaled container so it is always visible -->
-    <button id="theme-toggle" class="theme-toggle">🌙 Night Mode</button>
-
     <script>
         // Use Javascript to link the invisible hitboxes to the image animations and click events
         document.querySelectorAll('.hitbox').forEach(box => {
             // Hover logic
             box.addEventListener('mouseenter', () => {
-                document.getElementById(box.getAttribute('data-target')).classList.add('is-hovered');
+                const targetName = box.getAttribute('data-target');
+                document.getElementById(targetName).classList.add('is-hovered');
+                const snowCap = document.getElementById(`${targetName}-surface-snow`);
+                if (snowCap) snowCap.classList.add('is-hovered');
             });
             box.addEventListener('mouseleave', () => {
-                document.getElementById(box.getAttribute('data-target')).classList.remove('is-hovered');
+                const targetName = box.getAttribute('data-target');
+                document.getElementById(targetName).classList.remove('is-hovered');
+                const snowCap = document.getElementById(`${targetName}-surface-snow`);
+                if (snowCap) snowCap.classList.remove('is-hovered');
             });
             
             // Click logic - Cinematic Isolation
@@ -433,25 +444,28 @@
         let winterActive = false;
         let winterTimers = [];
 
-        // Fill the entire frame with varied flakes. The original eight remain;
-        // extra flakes make this read as weather rather than a character effect.
-        const winterSnowLayer = document.querySelector('.winter-snow');
-        while (winterSnowLayer.querySelectorAll('i').length < 48) {
-            winterSnowLayer.appendChild(document.createElement('i'));
+        // Three perceptual depths: distant flakes behind the boy, the main fall,
+        // and occasional large foreground flakes.
+        function populateSnowLayer(layer, count, minDepth, maxDepth) {
+            while (layer.querySelectorAll('i').length < count) {
+                layer.appendChild(document.createElement('i'));
+            }
+            layer.querySelectorAll('i').forEach(flake => {
+                const depth = minDepth + Math.random() * (maxDepth - minDepth);
+                flake.style.setProperty('--snow-x', `${Math.random() * 100}%`);
+                flake.style.setProperty('--snow-size', `${1.2 + depth * 5.3}px`);
+                flake.style.setProperty('--snow-speed', `${3.4 + (1 - depth) * 4.2}s`);
+                flake.style.setProperty('--snow-delay', `${-Math.random() * 8}s`);
+                flake.style.setProperty('--snow-sway-a', `${-70 + Math.random() * 140}px`);
+                flake.style.setProperty('--snow-sway-b', `${-90 + Math.random() * 180}px`);
+                flake.style.setProperty('--snow-sway-c', `${-65 + Math.random() * 130}px`);
+                flake.style.setProperty('--snow-end', `${-55 + Math.random() * 110}px`);
+                flake.style.setProperty('--snow-alpha', `${.24 + depth * .72}`);
+                flake.style.setProperty('--snow-blur', `${(1 - depth) * .7}px`);
+            });
         }
-        winterSnowLayer.querySelectorAll('i').forEach((flake, index) => {
-            const depth = Math.random();
-            flake.style.setProperty('--snow-x', `${Math.random() * 100}%`);
-            flake.style.setProperty('--snow-size', `${2 + depth * 4.5}px`);
-            flake.style.setProperty('--snow-speed', `${3.4 + (1 - depth) * 4.2}s`);
-            flake.style.setProperty('--snow-delay', `${-Math.random() * 8}s`);
-            flake.style.setProperty('--snow-sway-a', `${-70 + Math.random() * 140}px`);
-            flake.style.setProperty('--snow-sway-b', `${-90 + Math.random() * 180}px`);
-            flake.style.setProperty('--snow-sway-c', `${-65 + Math.random() * 130}px`);
-            flake.style.setProperty('--snow-end', `${-55 + Math.random() * 110}px`);
-            flake.style.setProperty('--snow-alpha', `${.42 + depth * .55}`);
-            flake.style.setProperty('--snow-blur', `${(1 - depth) * .7}px`);
-        });
+        populateSnowLayer(document.querySelector('.winter-snow-back'), 28, .06, .38);
+        populateSnowLayer(document.querySelector('.winter-snow-front'), 22, .42, 1);
 
         // Top-down accumulation is physically layered beneath the artwork, so
         // transparent asset edges remain exact without a synthetic cutout mask.
@@ -459,19 +473,56 @@
         const snowPileContext = snowPileCanvas.getContext('2d');
         const snowCoverageCanvas = document.createElement('canvas');
         const snowCoverageContext = snowCoverageCanvas.getContext('2d');
+        const surfaceSnowLayers = ['cycle', 'bag', 'books', 'headphone', 'laptop', 'paper', 'phone'].map(id => {
+            const canvas = document.getElementById(`${id}-surface-snow`);
+            return { id, canvas, context: canvas.getContext('2d') };
+        });
+        const surfaceScratchCanvas = document.createElement('canvas');
+        const surfaceScratchContext = surfaceScratchCanvas.getContext('2d', { willReadFrequently: true });
         snowCoverageCanvas.width = 1080;
         snowCoverageCanvas.height = 723;
+        surfaceScratchCanvas.width = 1080;
+        surfaceScratchCanvas.height = 723;
         const windDrifts = [
-            { x: 170, y: 180, rx: 125, ry: 55 },
-            { x: 850, y: 205, rx: 150, ry: 62 },
-            { x: 280, y: 520, rx: 165, ry: 72 },
-            { x: 780, y: 575, rx: 190, ry: 78 }
+            { x: 155, y: 190, rx: 165, ry: 45 },
+            { x: 870, y: 250, rx: 210, ry: 55 },
+            { x: 600, y: 585, rx: 260, ry: 82 }
         ];
         const settlingSnowParticles = [];
+        let settledParticleCount = 0;
         let snowPileRunning = false;
         let snowPileFrame = 0;
         let snowPileLastDrop = 0;
         let snowPhysicsLastTime = 0;
+
+        function buildAssetSnowMasks() {
+            surfaceSnowLayers.forEach(layer => {
+                const asset = document.getElementById(layer.id);
+                if (!asset || !asset.complete || !asset.naturalWidth) return;
+                const maskData = layer.context.createImageData(1080, 723);
+                surfaceScratchContext.clearRect(0, 0, 1080, 723);
+                surfaceScratchContext.drawImage(asset, 0, 0, 1080, 723);
+                const pixels = surfaceScratchContext.getImageData(0, 0, 1080, 723).data;
+
+                for (let y = 6; y < 721; y++) {
+                    for (let x = 1; x < 1079; x++) {
+                        const alpha = pixels[(y * 1080 + x) * 4 + 3];
+                        const above = pixels[((y - 5) * 1080 + x) * 4 + 3];
+                        if (alpha < 70 || above > 16) continue;
+                        for (let offsetY = -3; offsetY <= 1; offsetY++) {
+                            for (let offsetX = -1; offsetX <= 1; offsetX++) {
+                                const index = ((y + offsetY) * 1080 + x + offsetX) * 4;
+                                maskData.data[index] = 255;
+                                maskData.data[index + 1] = 255;
+                                maskData.data[index + 2] = 255;
+                                maskData.data[index + 3] = 235;
+                            }
+                        }
+                    }
+                }
+                layer.context.putImageData(maskData, 0, 0);
+            });
+        }
 
         function paintSnowPatch(x, y, radiusX, radiusY, opacity) {
             snowCoverageContext.save();
@@ -518,14 +569,28 @@
                 radius: (1.4 + Math.random() * 2.4) * depth,
                 vx: -7 + Math.random() * 14,
                 vy: 28 + Math.random() * 24,
-                phase: Math.random() * Math.PI * 2
+                phase: Math.random() * Math.PI * 2,
+                bounces: 0
             });
         }
 
         function settleParticle(particle) {
             // The landed grain remains visible and also contributes a broad,
             // faint layer so many particles eventually become a snow field.
-            paintSnowPatch(particle.targetX, particle.targetY, particle.coverageX, particle.coverageY, .045);
+            paintSnowPatch(particle.targetX, particle.targetY, particle.coverageX, particle.coverageY, .055);
+
+            // A neutral underside remains beneath the white grain, providing
+            // depth without tinting the exposed snow surface.
+            snowCoverageContext.fillStyle = 'rgba(153,174,185,.2)';
+            snowCoverageContext.beginPath();
+            snowCoverageContext.ellipse(
+                particle.targetX + 1,
+                particle.targetY + particle.radius * .7,
+                particle.radius * 2.25,
+                particle.radius * .75,
+                0, 0, Math.PI * 2
+            );
+            snowCoverageContext.fill();
             snowCoverageContext.fillStyle = 'rgba(255,255,255,.82)';
             snowCoverageContext.beginPath();
             snowCoverageContext.ellipse(
@@ -538,9 +603,32 @@
                 Math.PI * 2
             );
             snowCoverageContext.fill();
+
+            if (Math.random() < .13) {
+                snowCoverageContext.strokeStyle = 'rgba(124,143,153,.18)';
+                snowCoverageContext.lineWidth = .8;
+                snowCoverageContext.beginPath();
+                snowCoverageContext.arc(particle.targetX, particle.targetY + 1, particle.radius * 2.4, .15, Math.PI * .82);
+                snowCoverageContext.stroke();
+            }
+            if (Math.random() < .07) {
+                snowCoverageContext.save();
+                snowCoverageContext.strokeStyle = 'rgba(255,255,255,.92)';
+                snowCoverageContext.shadowColor = '#ffffff';
+                snowCoverageContext.shadowBlur = 3;
+                snowCoverageContext.lineWidth = .7;
+                snowCoverageContext.beginPath();
+                snowCoverageContext.moveTo(particle.targetX - 2.2, particle.targetY);
+                snowCoverageContext.lineTo(particle.targetX + 2.2, particle.targetY);
+                snowCoverageContext.moveTo(particle.targetX, particle.targetY - 2.2);
+                snowCoverageContext.lineTo(particle.targetX, particle.targetY + 2.2);
+                snowCoverageContext.stroke();
+                snowCoverageContext.restore();
+            }
+            settledParticleCount++;
         }
 
-        function drawCatPawprints() {
+        function drawCatPawprints(visibility) {
             // A light alternating trail curves in from the upper-left toward the cat.
             const steps = [
                 { x: 45, y: 65, angle: -.48, side: -1, alpha: .38 },
@@ -569,7 +657,7 @@
                 snowPileContext.translate(step.x + step.side * 5, step.y);
                 snowPileContext.rotate(step.angle + step.side * .08 + Math.PI);
                 snowPileContext.scale(.68, .68);
-                snowPileContext.globalAlpha = step.alpha;
+                snowPileContext.globalAlpha = step.alpha * visibility;
                 tracePaw(snowPileContext);
                 snowPileContext.fill();
                 snowPileContext.restore();
@@ -585,11 +673,11 @@
                 snowPileContext.rotate(step.angle + step.side * .08 + Math.PI);
                 snowPileContext.scale(.68, .68);
 
-                snowPileContext.fillStyle = `rgba(76,88,95,${step.alpha * .48})`;
+                snowPileContext.fillStyle = `rgba(76,88,95,${step.alpha * .48 * visibility})`;
                 tracePaw(snowPileContext);
                 snowPileContext.fill();
 
-                snowPileContext.strokeStyle = `rgba(255,255,255,${.48 + step.alpha * .38})`;
+                snowPileContext.strokeStyle = `rgba(255,255,255,${(.48 + step.alpha * .38) * visibility})`;
                 snowPileContext.lineWidth = 1.6;
                 snowPileContext.beginPath();
                 snowPileContext.ellipse(-.8, 3.3, 8.1, 7, 0, Math.PI * 1.04, Math.PI * 1.84);
@@ -617,6 +705,15 @@
                 if (remaining < 34) particle.x += (particle.targetX - particle.x) * dt * 3.2;
 
                 if (particle.y >= particle.targetY) {
+                    if (particle.bounces === 0) {
+                        particle.y = particle.targetY - .5;
+                        particle.vy = -(7 + Math.random() * 8);
+                        particle.vx *= .38;
+                        particle.targetX += -5 + Math.random() * 10;
+                        particle.targetY += Math.random() * 2;
+                        particle.bounces = 1;
+                        continue;
+                    }
                     settleParticle(particle);
                     settlingSnowParticles.splice(i, 1);
                     continue;
@@ -628,17 +725,26 @@
                 snowPileContext.fill();
             }
             snowPileContext.globalAlpha = 1;
-            drawCatPawprints();
+
+            // Every desk asset except the boy and cat receives a thin cap.
+            const capVisibility = Math.min(.9, settledParticleCount / 260);
+            surfaceSnowLayers.forEach(layer => {
+                layer.canvas.style.opacity = capVisibility;
+            });
+
+            // Tracks appear only after the surrounding snow is deep enough.
+            const pawVisibility = Math.min(1, Math.max(0, (settledParticleCount - 75) / 90));
+            if (pawVisibility > 0) drawCatPawprints(pawVisibility);
         }
 
         function growSnowPiles(time) {
             if (!snowPileRunning) return;
             const dt = Math.min(.034, Math.max(0, (time - snowPhysicsLastTime) / 1000));
             snowPhysicsLastTime = time;
-            if (time - snowPileLastDrop > 100) {
+            if (time - snowPileLastDrop > 85) {
                 // Several visible flakes reach the ground during each interval.
                 // Depositing them independently avoids a synchronized flat edge.
-                const landedFlakes = 3 + Math.floor(Math.random() * 3);
+                const landedFlakes = 4 + Math.floor(Math.random() * 3);
                 for (let i = 0; i < landedFlakes; i++) dropSettledSnow(time);
                 snowPileLastDrop = time;
             }
@@ -648,6 +754,10 @@
 
         function startSnowPiles() {
             if (snowPileRunning) return;
+            buildAssetSnowMasks();
+            surfaceSnowLayers.forEach(layer => {
+                layer.canvas.classList.toggle('is-hovered', document.getElementById(layer.id).classList.contains('is-hovered'));
+            });
             snowPileRunning = true;
             snowPileLastDrop = performance.now();
             snowPhysicsLastTime = snowPileLastDrop;
@@ -658,8 +768,13 @@
             snowPileRunning = false;
             cancelAnimationFrame(snowPileFrame);
             settlingSnowParticles.length = 0;
+            settledParticleCount = 0;
             snowCoverageContext.clearRect(0, 0, 1080, 723);
             snowPileContext.clearRect(0, 0, 1080, 723);
+            surfaceSnowLayers.forEach(layer => {
+                layer.canvas.style.opacity = '0';
+                layer.canvas.classList.remove('is-hovered');
+            });
         }
 
         function playWinterBoy() {
@@ -807,17 +922,6 @@
             });
         });
         
-        // Theme Toggle Logic
-        const themeToggle = document.getElementById('theme-toggle');
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('night-mode');
-            if (document.body.classList.contains('night-mode')) {
-                themeToggle.innerText = '☀️ Day Mode';
-            } else {
-                themeToggle.innerText = '🌙 Night Mode';
-            }
-        });
-
         // Room 3 chalkboard portfolio
         const chalkboardProjects = [
             {
