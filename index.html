@@ -467,9 +467,11 @@
             { x: 280, y: 520, rx: 165, ry: 72 },
             { x: 780, y: 575, rx: 190, ry: 78 }
         ];
+        const settlingSnowParticles = [];
         let snowPileRunning = false;
         let snowPileFrame = 0;
         let snowPileLastDrop = 0;
+        let snowPhysicsLastTime = 0;
 
         function paintSnowPatch(x, y, radiusX, radiusY, opacity) {
             snowCoverageContext.save();
@@ -486,44 +488,161 @@
             snowCoverageContext.restore();
         }
 
-        function dropSettledSnow() {
-            // Most deposits are spread over the complete floor. Occasionally,
-            // wind reinforces one persistent area into a broader natural drift.
+        function dropSettledSnow(time) {
+            // Give each visible particle its own landing point and motion.
+            let x;
+            let y;
+            let coverageX;
+            let coverageY;
             if (Math.random() < .2) {
                 const drift = windDrifts[Math.floor(Math.random() * windDrifts.length)];
-                paintSnowPatch(
-                    drift.x + (Math.random() - .5) * drift.rx,
-                    drift.y + (Math.random() - .5) * drift.ry,
-                    drift.rx * (.48 + Math.random() * .3),
-                    drift.ry * (.45 + Math.random() * .28),
-                    .07
-                );
+                x = drift.x + (Math.random() - .5) * drift.rx;
+                y = drift.y + (Math.random() - .5) * drift.ry;
+                coverageX = drift.rx * (.48 + Math.random() * .3);
+                coverageY = drift.ry * (.45 + Math.random() * .28);
             } else {
-                paintSnowPatch(
-                    Math.random() * 1080,
-                    Math.random() * 723,
-                    48 + Math.random() * 78,
-                    34 + Math.random() * 58,
-                    .052 + Math.random() * .035
-                );
+                x = Math.random() * 1080;
+                y = Math.random() * 723;
+                coverageX = 48 + Math.random() * 78;
+                coverageY = 34 + Math.random() * 58;
             }
+
+            const depth = .45 + y / 723 * .8;
+            settlingSnowParticles.push({
+                x: x + (Math.random() - .5) * 34,
+                y: y - 55 - Math.random() * 95,
+                targetX: x,
+                targetY: y,
+                coverageX,
+                coverageY,
+                radius: (1.4 + Math.random() * 2.4) * depth,
+                vx: -7 + Math.random() * 14,
+                vy: 28 + Math.random() * 24,
+                phase: Math.random() * Math.PI * 2
+            });
         }
 
-        function drawSettledSnow() {
+        function settleParticle(particle) {
+            // The landed grain remains visible and also contributes a broad,
+            // faint layer so many particles eventually become a snow field.
+            paintSnowPatch(particle.targetX, particle.targetY, particle.coverageX, particle.coverageY, .045);
+            snowCoverageContext.fillStyle = 'rgba(255,255,255,.82)';
+            snowCoverageContext.beginPath();
+            snowCoverageContext.ellipse(
+                particle.targetX,
+                particle.targetY,
+                particle.radius * (1.5 + Math.random()),
+                particle.radius * (.65 + Math.random() * .35),
+                Math.random() * Math.PI,
+                0,
+                Math.PI * 2
+            );
+            snowCoverageContext.fill();
+        }
+
+        function drawCatPawprints() {
+            // A light alternating trail curves in from the upper-left toward the cat.
+            const steps = [
+                { x: 45, y: 65, angle: -.48, side: -1, alpha: .38 },
+                { x: 73, y: 102, angle: -.43, side: 1, alpha: .43 },
+                { x: 99, y: 143, angle: -.37, side: -1, alpha: .48 },
+                { x: 130, y: 181, angle: -.31, side: 1, alpha: .54 },
+                { x: 158, y: 224, angle: -.25, side: -1, alpha: .59 },
+                { x: 194, y: 262, angle: -.18, side: 1, alpha: .65 },
+                { x: 224, y: 306, angle: -.11, side: -1, alpha: .7 }
+            ];
+
+            const tracePaw = context => {
+                context.beginPath();
+                context.ellipse(0, 4, 7.3, 6.2, 0, 0, Math.PI * 2);
+                context.ellipse(-6.5, -4, 2.8, 3.5, -.22, 0, Math.PI * 2);
+                context.ellipse(-2.2, -7.8, 2.8, 3.7, -.08, 0, Math.PI * 2);
+                context.ellipse(2.7, -7.5, 2.8, 3.7, .08, 0, Math.PI * 2);
+                context.ellipse(6.7, -3.5, 2.7, 3.4, .22, 0, Math.PI * 2);
+            };
+
+            // Compress the central pad and four separate toe marks into the snow.
+            snowPileContext.save();
+            snowPileContext.globalCompositeOperation = 'destination-out';
+            for (const step of steps) {
+                snowPileContext.save();
+                snowPileContext.translate(step.x + step.side * 5, step.y);
+                snowPileContext.rotate(step.angle + step.side * .08 + Math.PI);
+                snowPileContext.scale(.68, .68);
+                snowPileContext.globalAlpha = step.alpha;
+                tracePaw(snowPileContext);
+                snowPileContext.fill();
+                snowPileContext.restore();
+            }
+            snowPileContext.restore();
+
+            // A compacted centre and bright upper rim give each paw depth.
+            snowPileContext.save();
+            snowPileContext.globalCompositeOperation = 'source-atop';
+            for (const step of steps) {
+                snowPileContext.save();
+                snowPileContext.translate(step.x + step.side * 5, step.y);
+                snowPileContext.rotate(step.angle + step.side * .08 + Math.PI);
+                snowPileContext.scale(.68, .68);
+
+                snowPileContext.fillStyle = `rgba(76,88,95,${step.alpha * .48})`;
+                tracePaw(snowPileContext);
+                snowPileContext.fill();
+
+                snowPileContext.strokeStyle = `rgba(255,255,255,${.48 + step.alpha * .38})`;
+                snowPileContext.lineWidth = 1.6;
+                snowPileContext.beginPath();
+                snowPileContext.ellipse(-.8, 3.3, 8.1, 7, 0, Math.PI * 1.04, Math.PI * 1.84);
+                snowPileContext.stroke();
+                snowPileContext.restore();
+            }
+            snowPileContext.restore();
+        }
+
+        function drawSettledSnow(time, dt) {
             snowPileContext.clearRect(0, 0, 1080, 723);
             snowPileContext.drawImage(snowCoverageCanvas, 0, 0);
+
+            snowPileContext.fillStyle = '#ffffff';
+            for (let i = settlingSnowParticles.length - 1; i >= 0; i--) {
+                const particle = settlingSnowParticles[i];
+                particle.phase += dt * 2.1;
+                particle.vy += 22 * dt;
+                particle.x += (particle.vx + Math.sin(particle.phase) * 11) * dt;
+                particle.y += particle.vy * dt;
+
+                // Ease horizontally toward the chosen contact point as the
+                // particle loses momentum close to the floor.
+                const remaining = particle.targetY - particle.y;
+                if (remaining < 34) particle.x += (particle.targetX - particle.x) * dt * 3.2;
+
+                if (particle.y >= particle.targetY) {
+                    settleParticle(particle);
+                    settlingSnowParticles.splice(i, 1);
+                    continue;
+                }
+
+                snowPileContext.globalAlpha = .72;
+                snowPileContext.beginPath();
+                snowPileContext.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                snowPileContext.fill();
+            }
+            snowPileContext.globalAlpha = 1;
+            drawCatPawprints();
         }
 
         function growSnowPiles(time) {
             if (!snowPileRunning) return;
+            const dt = Math.min(.034, Math.max(0, (time - snowPhysicsLastTime) / 1000));
+            snowPhysicsLastTime = time;
             if (time - snowPileLastDrop > 100) {
                 // Several visible flakes reach the ground during each interval.
                 // Depositing them independently avoids a synchronized flat edge.
                 const landedFlakes = 3 + Math.floor(Math.random() * 3);
-                for (let i = 0; i < landedFlakes; i++) dropSettledSnow();
+                for (let i = 0; i < landedFlakes; i++) dropSettledSnow(time);
                 snowPileLastDrop = time;
             }
-            drawSettledSnow();
+            drawSettledSnow(time, dt);
             snowPileFrame = requestAnimationFrame(growSnowPiles);
         }
 
@@ -531,12 +650,14 @@
             if (snowPileRunning) return;
             snowPileRunning = true;
             snowPileLastDrop = performance.now();
+            snowPhysicsLastTime = snowPileLastDrop;
             snowPileFrame = requestAnimationFrame(growSnowPiles);
         }
 
         function clearSnowPiles() {
             snowPileRunning = false;
             cancelAnimationFrame(snowPileFrame);
+            settlingSnowParticles.length = 0;
             snowCoverageContext.clearRect(0, 0, 1080, 723);
             snowPileContext.clearRect(0, 0, 1080, 723);
         }
