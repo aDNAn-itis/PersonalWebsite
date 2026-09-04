@@ -22,6 +22,7 @@
         <section id="winter-boy" class="winter-boy" aria-label="Living in Sapporo, Hokkaido">
             <div class="winter-snow winter-snow-back" aria-hidden="true"></div>
             <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=full-winter-v2" alt="Boy putting on a winter cap and muffler">
+            <canvas class="surface-snow" id="boy-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow" id="cycle-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow bag-surface-snow" id="bag-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow books-surface-snow" id="books-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
@@ -206,13 +207,13 @@
                 const targetName = box.getAttribute('data-target');
                 document.getElementById(targetName).classList.add('is-hovered');
                 const snowCap = document.getElementById(`${targetName}-surface-snow`);
-                if (snowCap) snowCap.classList.add('is-hovered');
+                if (snowCap && targetName !== 'boy') snowCap.classList.add('is-hovered');
             });
             box.addEventListener('mouseleave', () => {
                 const targetName = box.getAttribute('data-target');
                 document.getElementById(targetName).classList.remove('is-hovered');
                 const snowCap = document.getElementById(`${targetName}-surface-snow`);
-                if (snowCap) snowCap.classList.remove('is-hovered');
+                if (snowCap && targetName !== 'boy') snowCap.classList.remove('is-hovered');
             });
             
             // Click logic - Cinematic Isolation
@@ -477,6 +478,15 @@
             const canvas = document.getElementById(`${id}-surface-snow`);
             return { id, canvas, context: canvas.getContext('2d') };
         });
+        const boySurfaceSnowCanvas = document.getElementById('boy-surface-snow');
+        const boySurfaceSnowContext = boySurfaceSnowCanvas.getContext('2d');
+        const boySnowCoverageCanvas = document.createElement('canvas');
+        const boySnowCoverageContext = boySnowCoverageCanvas.getContext('2d');
+        boySnowCoverageCanvas.width = 1080;
+        boySnowCoverageCanvas.height = 723;
+        const boySnowLandingPoints = [];
+        const boySnowParticles = [];
+        let boySnowLastDrop = 0;
         const surfaceScratchCanvas = document.createElement('canvas');
         const surfaceScratchContext = surfaceScratchCanvas.getContext('2d', { willReadFrequently: true });
         snowCoverageCanvas.width = 1080;
@@ -522,6 +532,102 @@
                 }
                 layer.context.putImageData(maskData, 0, 0);
             });
+        }
+
+        function buildBoySnowLandingPoints() {
+            const boy = document.getElementById('boy');
+            if (!boy.complete || !boy.naturalWidth) return;
+            boySnowLandingPoints.length = 0;
+            surfaceScratchContext.clearRect(0, 0, 1080, 723);
+            surfaceScratchContext.drawImage(boy, 0, 0, 1080, 723);
+            const pixels = surfaceScratchContext.getImageData(0, 0, 1080, 723).data;
+
+            // Collect upward-facing edges as physical collision points.
+            for (let y = 110; y < 455; y += 2) {
+                for (let x = 325; x < 620; x += 2) {
+                    // Keep the boy's left silhouette clean; snow aggregation
+                    // begins at the head/body centre and continues rightward.
+                    if (x < 430) continue;
+                    // Shoulders stay clear on both sides.
+                    if (y >= 205 && y <= 292) continue;
+                    // Keep the left half of the winter hat free of buildup.
+                    if (y < 205 && x < 480) continue;
+                    const alpha = pixels[(y * 1080 + x) * 4 + 3];
+                    const above = pixels[((y - 6) * 1080 + x) * 4 + 3];
+                    if (alpha > 85 && above < 18) boySnowLandingPoints.push({ x, y });
+                }
+            }
+        }
+
+        function dropBoySnowParticle(time) {
+            if (!boySnowLandingPoints.length) return;
+            const target = boySnowLandingPoints[Math.floor(Math.random() * boySnowLandingPoints.length)];
+            boySnowParticles.push({
+                x: target.x + (Math.random() - .5) * 12,
+                y: target.y - 42 - Math.random() * 58,
+                targetX: target.x + (Math.random() - .5) * 4,
+                targetY: target.y - Math.random() * 2,
+                radius: 1.3 + Math.random() * 2.1,
+                vx: -5 + Math.random() * 10,
+                vy: 25 + Math.random() * 18,
+                phase: Math.random() * Math.PI * 2,
+                bounced: false
+            });
+            boySnowLastDrop = time;
+        }
+
+        function settleBoySnowParticle(particle) {
+            const radius = particle.radius;
+            boySnowCoverageContext.fillStyle = 'rgba(142,160,171,.2)';
+            boySnowCoverageContext.beginPath();
+            boySnowCoverageContext.ellipse(particle.targetX + .7, particle.targetY + 1.2, radius * 2.1, radius * .72, 0, 0, Math.PI * 2);
+            boySnowCoverageContext.fill();
+            boySnowCoverageContext.fillStyle = 'rgba(255,255,255,.96)';
+            boySnowCoverageContext.beginPath();
+            boySnowCoverageContext.ellipse(particle.targetX, particle.targetY, radius * (1.35 + Math.random() * .8), radius * .72, Math.random() * .45, 0, Math.PI * 2);
+            boySnowCoverageContext.fill();
+        }
+
+        function drawBoySnowParticles(time, dt) {
+            if (time - boySnowLastDrop > 92) {
+                dropBoySnowParticle(time);
+                if (Math.random() < .38) dropBoySnowParticle(time);
+            }
+
+            boySurfaceSnowContext.clearRect(0, 0, 1080, 723);
+            boySurfaceSnowContext.drawImage(boySnowCoverageCanvas, 0, 0);
+            boySurfaceSnowContext.fillStyle = '#fff';
+
+            for (let i = boySnowParticles.length - 1; i >= 0; i--) {
+                const particle = boySnowParticles[i];
+                particle.phase += dt * 2.4;
+                particle.vy += 24 * dt;
+                particle.x += (particle.vx + Math.sin(particle.phase) * 5) * dt;
+                particle.y += particle.vy * dt;
+                if (particle.targetY - particle.y < 20) {
+                    particle.x += (particle.targetX - particle.x) * dt * 5;
+                }
+
+                if (particle.y >= particle.targetY) {
+                    if (!particle.bounced) {
+                        particle.y = particle.targetY - .5;
+                        particle.vy = -(5 + Math.random() * 5);
+                        particle.vx *= .25;
+                        particle.bounced = true;
+                    } else {
+                        settleBoySnowParticle(particle);
+                        boySnowParticles.splice(i, 1);
+                    }
+                    continue;
+                }
+
+                boySurfaceSnowContext.globalAlpha = .9;
+                boySurfaceSnowContext.beginPath();
+                boySurfaceSnowContext.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                boySurfaceSnowContext.fill();
+            }
+            boySurfaceSnowContext.globalAlpha = 1;
+            boySurfaceSnowCanvas.style.opacity = '1';
         }
 
         function paintSnowPatch(x, y, radiusX, radiusY, opacity) {
@@ -725,8 +831,9 @@
                 snowPileContext.fill();
             }
             snowPileContext.globalAlpha = 1;
+            drawBoySnowParticles(time, dt);
 
-            // Every desk asset except the boy and cat receives a thin cap.
+            // Other exposed desk assets keep their lightweight traced caps.
             const capVisibility = Math.min(.9, settledParticleCount / 260);
             surfaceSnowLayers.forEach(layer => {
                 layer.canvas.style.opacity = capVisibility;
@@ -755,6 +862,7 @@
         function startSnowPiles() {
             if (snowPileRunning) return;
             buildAssetSnowMasks();
+            buildBoySnowLandingPoints();
             surfaceSnowLayers.forEach(layer => {
                 layer.canvas.classList.toggle('is-hovered', document.getElementById(layer.id).classList.contains('is-hovered'));
             });
@@ -771,6 +879,12 @@
             settledParticleCount = 0;
             snowCoverageContext.clearRect(0, 0, 1080, 723);
             snowPileContext.clearRect(0, 0, 1080, 723);
+            boySnowParticles.length = 0;
+            boySnowLandingPoints.length = 0;
+            boySnowCoverageContext.clearRect(0, 0, 1080, 723);
+            boySurfaceSnowContext.clearRect(0, 0, 1080, 723);
+            boySurfaceSnowCanvas.style.opacity = '0';
+            boySurfaceSnowCanvas.classList.remove('is-hovered');
             surfaceSnowLayers.forEach(layer => {
                 layer.canvas.style.opacity = '0';
                 layer.canvas.classList.remove('is-hovered');
