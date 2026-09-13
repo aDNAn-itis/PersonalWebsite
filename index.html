@@ -21,7 +21,13 @@
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
         <section id="winter-boy" class="winter-boy" aria-label="Living in Sapporo, Hokkaido">
             <div class="winter-snow winter-snow-back" aria-hidden="true"></div>
-            <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=full-winter-v2" alt="Boy putting on a winter cap and muffler">
+            <div class="aurora-light" aria-hidden="true">
+                <div class="aurora-curtain aurora-curtain-one"></div>
+                <div class="aurora-curtain aurora-curtain-two"></div>
+                <div class="aurora-curtain aurora-curtain-three"></div>
+                <div class="aurora-reflection"></div>
+            </div>
+            <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=full-winter-v3" alt="Boy putting on a winter cap and muffler">
             <canvas class="surface-snow" id="boy-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow" id="cycle-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow bag-surface-snow" id="bag-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
@@ -34,6 +40,7 @@
                 <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </div>
             <p class="sapporo-note">currently living in<br><strong>Sapporo, Hokkaido</strong></p>
+            <p class="sapporo-note intro-note">hey, it’s me, Adnan.<br>mostly in a terminal,<br>building things.<br>curious about code, physics,<br>and the universe beyond<br>the screen.<br>when I’m not building,<br>I try to live like a human.<br><br>the things around me<br>tell the rest.<br>click around.</p>
         </section>
         <!-- Moving the bag up slightly -->
         <img class="interactive-item" id="bag" src="assets/a/bag_transparent.png" alt="Bag" style="top: -3%;">
@@ -101,6 +108,25 @@
         <!-- In-place Cosmos book magic; the original two-book layer remains untouched below it. -->
         <section id="cosmos-magic" class="cosmos-magic" aria-label="Cosmos book opening with starlight">
             <img id="cosmos-animator" class="cosmos-animator" src="assets/cosmos_magic/f0.png" alt="Thin Cosmos paperback opening">
+            <figure class="sagan-portrait">
+                <svg viewBox="0 0 180 230" role="img" aria-labelledby="sagan-line-title">
+                    <title id="sagan-line-title">Carl Sagan reading — a hand-drawn line portrait</title>
+                    <g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
+                        <!-- Swept, side-parted hair with a high forehead. -->
+                        <path pathLength="1" d="M47 85 C32 77 28 61 33 43 C34 26 48 16 65 17 C78 4 103 7 117 17 C137 20 148 36 145 53 C146 66 139 78 135 82 M46 77 C43 66 42 58 47 49 C55 38 68 34 73 21 C82 36 106 35 126 43 C135 48 136 63 132 73"/>
+                        <path pathLength="1" d="M38 57 Q36 31 64 25 M43 62 Q45 43 62 36 M77 18 Q101 16 124 32 M79 25 Q104 29 132 40 M35 65 Q36 76 43 79"/>
+                        <!-- Long face and prominent nose, tilted toward the book. -->
+                        <path pathLength="1" d="M48 66 C39 60 39 76 46 81 L52 82 C55 99 64 113 78 121 Q94 130 107 116 C122 107 130 92 132 72 M47 70 L48 76 M57 58 Q67 50 80 57 M97 59 Q108 51 119 57 M61 66 Q70 70 79 65 M100 66 Q109 70 118 63 M86 62 C86 73 83 79 90 85 L99 84 Q100 89 94 90"/>
+                        <path pathLength="1" d="M68 92 Q88 104 114 88 C110 103 96 113 86 111 Q75 108 68 92 M73 96 Q91 106 110 94 M70 85 Q64 87 64 96 M114 82 Q121 85 118 94 M62 74 L67 77 M111 76 L116 73 M87 117 Q96 121 102 115"/>
+                        <!-- Turtleneck and open jacket. -->
+                        <path pathLength="1" d="M65 110 L61 131 Q83 152 110 130 L110 114 M64 123 Q86 142 108 125 M61 132 L48 126 L25 141 L15 188 M111 132 L122 129 L148 145 L166 195 M49 128 L42 148 L55 150 L45 164 M123 132 L134 150 L122 155 L136 168"/>
+                        <!-- Open book and the hands resting around its edges. -->
+                        <path pathLength="1" d="M34 161 Q60 159 90 175 Q118 159 149 162 L141 205 Q115 202 89 219 Q64 205 38 205 Z M90 175 L89 219 M38 155 Q64 157 90 171 Q116 157 145 157 M48 174 Q66 175 80 183 M48 181 Q65 182 80 190 M101 183 Q119 174 136 176 M101 190 Q119 181 135 183"/>
+                        <path pathLength="1" d="M18 183 Q27 173 37 178 L48 184 Q50 189 43 190 L29 187 M24 192 L43 195 Q46 200 39 201 L23 198 M22 202 Q25 212 40 209 M164 187 Q155 177 144 181 L133 188 Q133 193 140 192 L154 189 M158 195 L139 198 Q136 204 143 203 L159 201 M159 204 Q153 215 141 209"/>
+                    </g>
+                </svg>
+                <figcaption>Carl Sagan</figcaption>
+            </figure>
             <div class="cosmos-wind" aria-hidden="true">
                 <i></i><i></i><i></i><i></i>
             </div>
@@ -110,7 +136,13 @@
             <img id="headphone-connect-animator" class="headphone-connect-animator" src="assets/headphone_connect/f0.png" alt="Headphone cable connection animation">
         </section>
 
+        <section id="grass-relax" class="grass-relax" aria-label="Relaxing in a field while listening to music">
+            <img id="grass-boy-animator" class="grass-boy-animator" src="assets/grass_relax/f0.png?v=relax-motion-v19" alt="Boy transitioning into a peaceful resting pose">
+            <p class="grass-note">sometimes the best thing<br>to build is a little quiet.</p>
+        </section>
+
         <!-- Invisible Hitboxes for accurate hovering -->
+
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
             <div class="hitbox" data-target="cycle" style="top: 57.4%; left: 55.3%; width: 39.1%; height: 31.0%;"></div>
@@ -153,7 +185,8 @@
 
                 <div id="phone-content" class="panel">
                     <h2>Contact / Socials</h2>
-                    <p>Reach out to me via email or connect with me on social media.</p>
+                    <p>Explore my code and connect with me on GitHub.</p>
+                    <p><a href="https://github.com/aDNAn-itis" target="_blank" rel="noopener noreferrer">Visit Adnan’s GitHub ↗</a></p>
                 </div>
 
                 <div id="headphone-content" class="panel">
@@ -183,6 +216,22 @@
         
     </div>
     
+    <div class="background-picker">
+        <label for="background-choice">a change of scenery</label>
+        <select id="background-choice">
+            <option value="original" selected>Original floor</option>
+            <option value="park">Japanese park</option>
+            <option value="overcast">Quiet pavement</option>
+            <option value="sunlight">Sunlit pavement</option>
+            <option value="ivory">Ivory garden</option>
+            <option value="tower">Tokyo Tower plaza</option>
+            <option value="overhead">Tokyo glow · overhead</option>
+            <option value="field">Quiet ink meadow</option>
+            <option value="aurora">Aurora snowfall</option>
+        </select>
+        <span id="background-status" class="background-status" role="status"></span>
+    </div>
+
     <!-- Pomodoro Timer Room Scene -->
     <div id="pomodoro-scene" class="pomodoro-container">
         <img class="pomodoro-bg" src="assets/pomodoro/scenery_bg.jpg" alt="Background">
@@ -199,9 +248,67 @@
         </div>
     </div>
     
+    <script src="sakura.js?v=2"></script>
     <script>
+        const backgroundFiles = {
+            original: 'black%20_background.png',
+            park: 'japanese_park_ground.png',
+            overcast: 'park_pavement_overcast.png',
+            sunlight: 'park_pavement_sunlight.png',
+            ivory: 'japanese_garden_ivory.png',
+            tower: 'tokyo_tower_plaza.png',
+            overhead: 'tokyo_plaza_overhead.png',
+            field: '../grass_relax/ink-grass-field.png',
+            aurora: 'park_pavement_overcast.png'
+        };
+        const backgroundChoice = document.getElementById('background-choice');
+        const backgroundStatus = document.getElementById('background-status');
+        let backgroundRequest = 0;
+        let activeBackground = 'original';
+        // Each visit starts on the original artwork, including browser form restoration.
+        backgroundChoice.value = 'original';
+        backgroundChoice.addEventListener('change', () => {
+            const selected = backgroundChoice.value;
+            const request = ++backgroundRequest;
+            const path = `assets/a/${backgroundFiles[selected]}`;
+            backgroundStatus.textContent = 'Loading…';
+            const preview = new Image();
+            preview.onload = () => {
+                if (request !== backgroundRequest) return;
+                document.querySelector('.scene-container').style.setProperty('--scene-floor', `url("${path}")`);
+                activeBackground = selected;
+                document.body.classList.toggle('aurora-active', selected === 'aurora');
+                if (selected === 'aurora' && !document.body.classList.contains('winter-boy-active')) {
+                    resetActiveDeskAnimations('boy');
+                    playWinterBoy();
+                }
+                backgroundStatus.textContent = '';
+            };
+            preview.onerror = () => {
+                if (request !== backgroundRequest) return;
+                backgroundChoice.value = activeBackground;
+                backgroundStatus.textContent = 'Couldn’t load this background. Try again.';
+            };
+            preview.src = path;
+        });
+
         // Use Javascript to link the invisible hitboxes to the image animations and click events
         document.querySelectorAll('.hitbox').forEach(box => {
+            const accessibleNames = {
+                boy: 'Meet Adnan — start snowfall', laptop: 'Explore projects',
+                paper: 'Read about research', phone: 'Contact and GitHub',
+                cycle: 'Go for a bicycle ride', bag: 'Open my bag',
+                books: 'Open the Cosmos book', headphone: 'Connect headphones', cat: 'Meet my cat'
+            };
+            box.tabIndex = 0;
+            box.setAttribute('role', 'button');
+            box.setAttribute('aria-label', accessibleNames[box.dataset.target] || box.dataset.target);
+            box.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    box.click();
+                }
+            });
             // Hover logic
             box.addEventListener('mouseenter', () => {
                 const targetName = box.getAttribute('data-target');
@@ -224,6 +331,7 @@
                 });
                 
                 const targetName = box.getAttribute('data-target');
+
                 resetActiveDeskAnimations(targetName);
                 
 
@@ -436,7 +544,7 @@
         const winterBoy = document.getElementById('winter-boy');
         const winterBoyAnimator = document.getElementById('winter-boy-animator');
         const winterFrames = [];
-        const winterVersion = 'full-winter-v2';
+        const winterVersion = 'full-winter-v4';
         for (let i = 0; i <= 6; i++) {
             const img = new Image();
             img.src = `assets/winter_boy/f${i}.png?v=${winterVersion}`;
@@ -985,13 +1093,64 @@
                         document.body.classList.add('headphone-connected');
                         headphoneConnect.classList.add('is-active');
                     }
-                    if (frame === 6) headphoneConnect.classList.add('is-connected');
+                    if (frame === 6) {
+                        headphoneConnect.classList.add('is-connected');
+                        // Continue the headphone story automatically: once the
+                        // cable lands in the phone, transition the boy in place.
+                        grassTimers.push(setTimeout(playGrassRelax, 420));
+                    }
                 }, delay);
                 headphoneConnectTimers.push(timer);
             });
         }
 
+        // ----------------------------------------------------
+        // Headphones payoff: the boy relaxes in the existing desk scene
+        // ----------------------------------------------------
+        const grassRelax = document.getElementById('grass-relax');
+        const grassBoyAnimator = document.getElementById('grass-boy-animator');
+        const grassBoyFrames = [];
+        const grassBoyFrameCount = 7;
+        for (let i = 0; i < grassBoyFrameCount; i++) {
+            const img = new Image();
+            img.src = `assets/grass_relax/f${i}.png?v=relax-motion-v19`;
+            grassBoyFrames[i] = img;
+        }
+        let grassRelaxActive = false;
+        let grassTimers = [];
+
+        function clearGrassRelax() {
+            window.sakura.stop();
+            grassTimers.forEach(clearTimeout);
+            grassTimers = [];
+            grassRelax.classList.remove('is-active', 'is-relaxed');
+            document.body.classList.remove('grass-relax-active');
+            grassBoyAnimator.src = grassBoyFrames[0].src;
+            grassRelaxActive = false;
+        }
+
+        function playGrassRelax() {
+            if (grassRelaxActive) {
+                clearGrassRelax();
+                resetActiveDeskAnimations();
+                return;
+            }
+            grassRelaxActive = true;
+            document.body.classList.add('grass-relax-active');
+            grassRelax.classList.add('is-active');
+            window.sakura.start();
+
+            const grassFrameTimes = [0, 220, 400, 575, 750, 930, 1120];
+            grassBoyFrames.forEach((frame, index) => {
+                grassTimers.push(setTimeout(() => {
+                    grassBoyAnimator.src = frame.src;
+                }, grassFrameTimes[index]));
+            });
+            grassTimers.push(setTimeout(() => grassRelax.classList.add('is-relaxed'), 1280));
+        }
+
         function resetActiveDeskAnimations(exceptTarget = '') {
+            if (exceptTarget !== 'grass-relax') clearGrassRelax();
             if (exceptTarget !== 'books') {
                 cosmosAnimationTimers.forEach(clearTimeout);
                 cosmosAnimationTimers = [];

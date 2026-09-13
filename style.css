@@ -17,6 +17,7 @@ body {
     overflow: hidden; /* Prevent any scrollbars from the bleeding edges */
 }
 
+
 .scene-container {
     position: relative;
     width: max(100vw, calc(100vh * (1080 / 723)));
@@ -31,13 +32,51 @@ body {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    background-image: url('assets/a/black%20_background.png');
+    background-image: var(--scene-floor, url('assets/a/black%20_background.png'));
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     z-index: -1;
     transition: filter 1.5s ease;
 }
+
+body.winter-boy-active .interactive-item,
+body.winter-boy-active .interactive-item.is-hovered,
+body.winter-boy-active .surface-snow { filter: none; }
+
+.background-picker {
+    position: fixed;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    right: 18px;
+    z-index: 100;
+    display: grid;
+    gap: 4px;
+    max-width: calc(100vw - 36px);
+    padding: 10px 14px;
+    color: #57463c;
+    background: rgba(255, 252, 245, .94);
+    border: 1px solid rgba(87, 70, 60, .2);
+    border-radius: 10px;
+    font: 18px/1.3 'Patrick Hand', cursive;
+}
+.background-picker select {
+    font: inherit;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    min-height: 36px;
+    cursor: pointer;
+}
+.background-picker select:focus-visible { outline: 2px solid #7a3030; outline-offset: 3px; }
+.background-status:empty { display: none; }
+.background-status { font-size: 15px; }
+body:has(.modal-active) .background-picker,
+body.bike-active .background-picker,
+body.about-active .background-picker,
+body.table-active .background-picker,
+body.laptop-opening .background-picker,
+body.bookshelf-active .background-picker,
+body.grass-relax-active .background-picker { display: none; }
 
 .interactive-item {
     position: absolute;
@@ -109,8 +148,76 @@ body.winter-boy-active #boy { opacity: 0 !important; }
 .sapporo-note strong { color: #7a3030; font-size: 25px; font-weight: 400; }
 .winter-boy.is-settled .sapporo-note { opacity: 1; transform: translateY(0) rotate(-2deg); }
 
+.sapporo-note.intro-note {
+    top: 10%;
+    left: 75%;
+    width: 23%;
+    line-height: 1.3;
+}
+
 .winter-snow { position: absolute; inset: 0; overflow: hidden; opacity: 0; }
 .winter-snow-back { z-index: 0; }
+.aurora-light {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 2;
+    display: none;
+}
+body.aurora-active .aurora-light { display: block; }
+body.aurora-active.winter-boy-active .scene-container::before {
+    filter: brightness(.72) saturate(.65);
+}
+.aurora-curtain {
+    position: absolute;
+    left: -12%;
+    top: -25%;
+    width: 125%;
+    height: 60%;
+    border-radius: 0 0 48% 60%;
+    background:
+        repeating-linear-gradient(96deg, transparent 0 2%, rgba(128,255,214,.22) 2.7%, transparent 4.3%),
+        linear-gradient(180deg, transparent 15%, rgba(52,187,161,.12) 43%, rgba(73,244,197,.58) 76%, rgba(96,151,255,.22) 88%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent, #000 18% 80%, transparent);
+    filter: blur(8px);
+    transform-origin: 50% 0;
+    animation: aurora-wave 16s ease-in-out infinite alternate;
+    opacity: .65;
+}
+.aurora-curtain-two {
+    top: -30%;
+    left: -25%;
+    height: 64%;
+    filter: blur(13px) hue-rotate(36deg);
+    animation-duration: 23s;
+    animation-delay: -9s;
+    opacity: .4;
+}
+.aurora-curtain-three {
+    left: 20%;
+    width: 85%;
+    top: -27%;
+    height: 53%;
+    filter: blur(11px) hue-rotate(95deg);
+    animation-duration: 19s;
+    animation-delay: -5s;
+    opacity: .25;
+}
+.aurora-reflection {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 25% 72%, rgba(87,220,191,.12), transparent 48%),
+        radial-gradient(ellipse at 80% 80%, rgba(142,122,220,.1), transparent 45%);
+}
+@keyframes aurora-wave {
+    0% { transform: translate(-3%, -2%) skewX(-12deg) rotate(-5deg) scaleY(.82); }
+    50% { transform: translate(2%, 3%) skewX(5deg) rotate(2deg) scaleY(1.07); }
+    100% { transform: translate(5%, -1%) skewX(13deg) rotate(-2deg) scaleY(.94); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .aurora-curtain { animation: none; }
+}
 .winter-snow-front { z-index: 3; }
 .winter-boy.is-active .winter-snow { opacity: 1; }
 .winter-snow i {
@@ -413,6 +520,45 @@ body.cosmos-magic-active #books {
     display: none;
 }
 
+.sagan-portrait {
+    position: absolute;
+    left: .3%;
+    top: 47%;
+    width: 11%;
+    margin: 0;
+    color: #57463c;
+    font: 17px/1.2 'Patrick Hand', cursive;
+    text-align: center;
+    visibility: hidden;
+    pointer-events: none;
+}
+.sagan-portrait svg { display: block; width: 100%; height: auto; }
+.sagan-portrait figcaption { margin-top: 5px; }
+.cosmos-magic.is-active .sagan-portrait {
+    visibility: visible;
+}
+.sagan-portrait path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+}
+.cosmos-magic.is-active .sagan-portrait path {
+    animation: sagan-ink .8s ease forwards;
+    animation-delay: .5s;
+}
+.cosmos-magic.is-active .sagan-portrait path:nth-child(2) { animation-delay: .85s; }
+.cosmos-magic.is-active .sagan-portrait path:nth-child(3) { animation-delay: 1.15s; }
+.cosmos-magic.is-active .sagan-portrait path:nth-child(4) { animation-delay: 1.55s; }
+.cosmos-magic.is-active .sagan-portrait path:nth-child(5) { animation-delay: 1.9s; }
+.cosmos-magic.is-active .sagan-portrait path:nth-child(6) { animation-delay: 2.25s; }
+.cosmos-magic.is-active .sagan-portrait path:nth-child(7) { animation-delay: 2.6s; }
+@keyframes sagan-ink {
+    to { stroke-dashoffset: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .cosmos-magic.is-active .sagan-portrait path { animation: none; stroke-dashoffset: 0; }
+}
+
+
 .cosmos-wind i {
     position: absolute;
     left: 16%;
@@ -466,6 +612,92 @@ body.headphone-connected #phone {
     width: 100%;
     height: 100%;
     object-fit: contain;
+}
+
+/* ============================================
+   IN-SCENE RELAXATION — unlocked by headphones
+   ============================================ */
+.sakura-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+.sakura-ground { z-index: 0; }
+.sakura-air { z-index: 69; }
+
+.grass-relax {
+    position: absolute;
+    inset: 0;
+    z-index: 13;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .45s ease, visibility 0s linear .45s;
+}
+
+.grass-relax.is-active {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.grass-boy-animator {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.grass-boy-animator {
+    z-index: 1;
+    object-fit: contain;
+    opacity: 1;
+    transition: transform 1.1s cubic-bezier(.16,.8,.24,1);
+    filter: drop-shadow(0 12px 10px rgba(29,56,29,.2));
+}
+
+.grass-relax.is-relaxed .grass-boy-animator {
+    transform: translateY(2px) scale(1.01);
+}
+
+.grass-note {
+    position: absolute;
+    z-index: 3;
+    left: 7%;
+    bottom: 8%;
+    margin: 0;
+    color: rgba(245,239,210,.94);
+    font: 23px/1.12 'Patrick Hand', cursive;
+    letter-spacing: .02em;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity .8s ease 1.5s, transform .8s ease 1.5s;
+    text-shadow: 0 2px 7px rgba(24,54,30,.45);
+}
+
+.grass-relax.is-relaxed .grass-note {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+body.grass-relax-active #boy {
+    opacity: 0 !important;
+}
+
+/* Clear the relaxed boy's feet without changing the normal desk layout. */
+body.grass-relax-active #laptop {
+    transform: translateX(-16%);
+}
+
+body.grass-relax-active .hitbox {
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .grass-boy-animator,
+    .grass-note { transition-duration: .01ms !important; transition-delay: 0s !important; }
 }
 
 /* Room 3 — the window is replaced entirely by a cafe menu blackboard. */
