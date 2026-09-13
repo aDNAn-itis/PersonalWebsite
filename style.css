@@ -17,6 +17,17 @@ body {
     overflow: hidden; /* Prevent any scrollbars from the bleeding edges */
 }
 
+/* Audio-only YouTube embed used by the headphone interaction. */
+.headphone-music {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    left: -9999px;
+    border: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
 /* Hold one stable canvas until the layered scene is fully ready. */
 body.page-loading .scene-container,
 body.page-loading .background-picker {

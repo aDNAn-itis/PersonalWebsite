@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Layered Portfolio</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
 
@@ -358,15 +359,7 @@
 
                 // If the cycle is clicked, trigger the bike ride directly!
                 if (targetName === 'cycle') {
-                    // Clear any inline JS styles
-                    document.querySelectorAll('.interactive-item').forEach(item => {
-                        item.style.opacity = '';
-                        item.style.transform = '';
-                    });
-                    
-                    document.body.classList.add('bike-active');
                     startBikeAnimation();
-                    
                     return; 
                 }
 
@@ -507,13 +500,32 @@
             return img;
         });
         const totalBikeFrames = bikeFrames.length;
+        const bikeBackground = new Image();
+        bikeBackground.src = 'assets/scene2/road%20_background.png';
+        const decodeImage = image => image.decode ? image.decode().catch(() => {}) : Promise.resolve();
+        const bikeSceneReady = Promise.all([
+            decodeImage(bikeBackground),
+            ...bikeFrames.map(decodeImage)
+        ]);
 
         let bikeAnimationInterval;
+        let bikeLaunchRequest = 0;
         let currentBikeFrame = 0;
         const bikeAnimator = document.getElementById('bike-animator');
 
-        function startBikeAnimation() {
+        async function startBikeAnimation() {
+            const request = ++bikeLaunchRequest;
             clearInterval(bikeAnimationInterval);
+            await bikeSceneReady;
+            if (request !== bikeLaunchRequest) return;
+
+            // Reveal the scene only after its background and animation frames
+            // are decoded, preventing progressive top-to-bottom painting.
+            document.querySelectorAll('.interactive-item').forEach(item => {
+                item.style.opacity = '';
+                item.style.transform = '';
+            });
+            document.body.classList.add('bike-active');
             currentBikeFrame = 0;
             bikeAnimator.src = bikeFrames[0].src;
             bikeAnimationInterval = setInterval(() => {
@@ -523,6 +535,7 @@
         }
 
         function stopBikeAnimation() {
+            bikeLaunchRequest++;
             clearInterval(bikeAnimationInterval);
         } 
 
@@ -1098,12 +1111,28 @@
         const headphoneConnectDelays = [0, 120, 235, 345, 450, 555, 675, 810, 940];
         let headphoneConnectTimers = [];
 
+        function playHeadphoneMusic() {
+            if (document.getElementById('headphone-music')) return;
+            const player = document.createElement('iframe');
+            player.id = 'headphone-music';
+            player.className = 'headphone-music';
+            player.title = 'Music playing in the headphone scene';
+            player.allow = 'autoplay; encrypted-media';
+            player.src = 'https://www.youtube-nocookie.com/embed/wok0OoivstE?autoplay=1&loop=1&playlist=wok0OoivstE';
+            document.body.appendChild(player);
+        }
+
+        function stopHeadphoneMusic() {
+            document.getElementById('headphone-music')?.remove();
+        }
+
         function playHeadphoneConnection() {
             headphoneConnectTimers.forEach(clearTimeout);
             headphoneConnectTimers = [];
             headphoneConnect.classList.remove('is-active', 'is-connected');
             document.body.classList.remove('headphone-connected');
             document.getElementById('headphone').classList.remove('is-hovered');
+            playHeadphoneMusic();
             void headphoneConnect.offsetWidth;
 
             headphoneConnectDelays.forEach((delay, frame) => {
@@ -1188,6 +1217,7 @@
             }
 
             if (exceptTarget !== 'headphone') {
+                stopHeadphoneMusic();
                 headphoneConnectTimers.forEach(clearTimeout);
                 headphoneConnectTimers = [];
                 headphoneConnect.classList.remove('is-active', 'is-connected');
