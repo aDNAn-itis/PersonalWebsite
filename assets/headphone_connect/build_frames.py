@@ -75,6 +75,27 @@ for radius in reveal_radii:
     frame.alpha_composite(phone)
     frames.append(frame)
 
+# Once the cord connects to the phone, the boy picks up the headphone to wear it.
+# Fade out both the headphone and extension cord, and move the phone a bit above (-50px).
+# Frame 7: headphone and cable fading, phone at static position
+f7 = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+hp_faded = headphone.copy()
+hp_a = hp_faded.getchannel("A").point(lambda a: int(a * 0.45))
+hp_faded.putalpha(hp_a)
+f7.alpha_composite(hp_faded)
+
+cable_faded = cable_texture.copy()
+cable_a = cable_faded.getchannel("A").point(lambda a: int(a * 0.45))
+cable_faded.putalpha(cable_a)
+f7.alpha_composite(cable_faded, cable_position)
+f7.alpha_composite(phone)
+frames.append(f7)
+
+# Frame 8: headphone and cable completely gone, phone at static position
+f8 = Image.new("RGBA", canvas_size, (0, 0, 0, 0))
+f8.alpha_composite(phone)
+frames.append(f8)
+
 for index, frame in enumerate(frames):
     frame.save(OUT / f"f{index}.png", optimize=True)
 

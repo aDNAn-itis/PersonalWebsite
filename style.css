@@ -595,6 +595,7 @@ body.cosmos-magic-active #books {
     z-index: 14;
     opacity: 0;
     pointer-events: none;
+    transition: transform 0.35s ease, opacity 0.45s ease;
 }
 
 .headphone-connect.is-active {
@@ -641,6 +642,8 @@ body.headphone-connected #phone {
     opacity: 1;
     visibility: visible;
     transition-delay: 0s;
+    pointer-events: auto;
+    cursor: pointer;
 }
 
 .grass-boy-animator {
@@ -689,6 +692,11 @@ body.grass-relax-active #boy {
 /* Clear the relaxed boy's feet without changing the normal desk layout. */
 body.grass-relax-active #laptop {
     transform: translateX(-16%);
+}
+
+/* Synchronize phone shifting above and right at the exact same time as laptop */
+body.grass-relax-active .headphone-connect {
+    transform: translate(calc(100% * 35 / 1080), calc(100% * -50 / 723));
 }
 
 body.grass-relax-active .hitbox {

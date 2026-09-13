@@ -1070,12 +1070,12 @@
         const headphoneConnect = document.getElementById('headphone-connect');
         const headphoneConnectAnimator = document.getElementById('headphone-connect-animator');
         const headphoneConnectFrames = [];
-        for (let i = 0; i <= 6; i++) {
+        for (let i = 0; i <= 8; i++) {
             const img = new Image();
             img.src = `assets/headphone_connect/f${i}.png`;
             headphoneConnectFrames[i] = img;
         }
-        const headphoneConnectDelays = [0, 120, 235, 345, 450, 555, 675];
+        const headphoneConnectDelays = [0, 120, 235, 345, 450, 555, 675, 810, 940];
         let headphoneConnectTimers = [];
 
         function playHeadphoneConnection() {
@@ -1095,9 +1095,11 @@
                     }
                     if (frame === 6) {
                         headphoneConnect.classList.add('is-connected');
-                        // Continue the headphone story automatically: once the
-                        // cable lands in the phone, transition the boy in place.
-                        grassTimers.push(setTimeout(playGrassRelax, 420));
+                    }
+                    if (frame === 8) {
+                        // Once the headphone has dissolved off the desk (the boy put it on),
+                        // transition the boy into his relaxed pose.
+                        grassTimers.push(setTimeout(playGrassRelax, 80));
                     }
                 }, delay);
                 headphoneConnectTimers.push(timer);
@@ -1108,6 +1110,12 @@
         // Headphones payoff: the boy relaxes in the existing desk scene
         // ----------------------------------------------------
         const grassRelax = document.getElementById('grass-relax');
+        grassRelax.addEventListener('click', () => {
+            if (grassRelaxActive) {
+                clearGrassRelax();
+                resetActiveDeskAnimations();
+            }
+        });
         const grassBoyAnimator = document.getElementById('grass-boy-animator');
         const grassBoyFrames = [];
         const grassBoyFrameCount = 7;
