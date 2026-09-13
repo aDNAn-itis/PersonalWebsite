@@ -17,6 +17,12 @@ body {
     overflow: hidden; /* Prevent any scrollbars from the bleeding edges */
 }
 
+/* Hold one stable canvas until the layered scene is fully ready. */
+body.page-loading .scene-container,
+body.page-loading .background-picker {
+    opacity: 0;
+}
+
 
 .scene-container {
     position: relative;
@@ -25,6 +31,8 @@ body {
     box-shadow: none;
     border-radius: 0;
     z-index: 1; /* Establish stacking context */
+    opacity: 1;
+    transition: opacity .28s ease-out;
 }
 
 /* Background kept in a pseudo-element behind the interactive scene. */
@@ -58,6 +66,7 @@ body.winter-boy-active .surface-snow { filter: none; }
     border: 1px solid rgba(87, 70, 60, .2);
     border-radius: 10px;
     font: 18px/1.3 'Patrick Hand', cursive;
+    transition: opacity .28s ease-out;
 }
 .background-picker select {
     font: inherit;

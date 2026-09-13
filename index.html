@@ -6,7 +6,7 @@
     <title>Interactive Layered Portfolio</title>
     <link rel="stylesheet" href="style.css">
 </head>
-<body data-room="room3">
+<body class="page-loading" data-room="room3">
 
     <div class="scene-container">
 
@@ -250,6 +250,15 @@
     
     <script src="sakura.js?v=2"></script>
     <script>
+        // Keep the layered artwork hidden until every initial image has loaded.
+        // This prevents the fallback floor and the browser's white canvas from
+        // flashing before the completed room is painted.
+        window.addEventListener('load', () => {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => document.body.classList.remove('page-loading'));
+            });
+        });
+
         const backgroundFiles = {
             original: 'black%20_background.png',
             park: 'japanese_park_ground.png',
