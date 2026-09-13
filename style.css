@@ -699,10 +699,6 @@ body.grass-relax-active .headphone-connect {
     transform: translate(calc(100% * 35 / 1080), calc(100% * -50 / 723));
 }
 
-body.grass-relax-active .hitbox {
-    pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
     .grass-boy-animator,
     .grass-note { transition-duration: .01ms !important; transition-delay: 0s !important; }

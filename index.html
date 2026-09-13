@@ -18,7 +18,7 @@
         <!-- Bike Scene Animation Frame -->
         <img class="bike-scene-item" id="bike-animator" src="assets/scene2/frame1.png" alt="Cycling Animation">
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
-        <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png" alt="Boy">
+        <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png?v=regenerated-about-v5" alt="Boy">
         <section id="winter-boy" class="winter-boy" aria-label="Living in Sapporo, Hokkaido">
             <div class="winter-snow winter-snow-back" aria-hidden="true"></div>
             <div class="aurora-light" aria-hidden="true">
@@ -27,7 +27,7 @@
                 <div class="aurora-curtain aurora-curtain-three"></div>
                 <div class="aurora-reflection"></div>
             </div>
-            <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=full-winter-v3" alt="Boy putting on a winter cap and muffler">
+            <img id="winter-boy-animator" src="assets/winter_boy/f0.png?v=regenerated-about-v5" alt="Boy putting on a winter cap and muffler">
             <canvas class="surface-snow" id="boy-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow" id="cycle-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow bag-surface-snow" id="bag-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
@@ -137,7 +137,7 @@
         </section>
 
         <section id="grass-relax" class="grass-relax" aria-label="Relaxing in a field while listening to music">
-            <img id="grass-boy-animator" class="grass-boy-animator" src="assets/grass_relax/f0.png?v=relax-motion-v19" alt="Boy transitioning into a peaceful resting pose">
+            <img id="grass-boy-animator" class="grass-boy-animator" src="assets/grass_relax/f0.png?v=regenerated-about-v23" alt="Boy transitioning into a peaceful resting pose">
             <p class="grass-note">sometimes the best thing<br>to build is a little quiet.</p>
         </section>
 
@@ -331,8 +331,19 @@
                 });
                 
                 const targetName = box.getAttribute('data-target');
+                const returningFromHeadphoneBoy = grassRelaxActive && targetName === 'boy';
 
                 resetActiveDeskAnimations(targetName);
+
+                // A second click on the headphone boy returns to the default
+                // desk rather than immediately starting the winter scene.
+                if (returningFromHeadphoneBoy) {
+                    document.querySelectorAll('.interactive-item').forEach(item => {
+                        item.style.opacity = '';
+                        item.style.transform = '';
+                    });
+                    return;
+                }
                 
 
 
@@ -544,7 +555,7 @@
         const winterBoy = document.getElementById('winter-boy');
         const winterBoyAnimator = document.getElementById('winter-boy-animator');
         const winterFrames = [];
-        const winterVersion = 'full-winter-v4';
+        const winterVersion = 'regenerated-about-v5';
         for (let i = 0; i <= 6; i++) {
             const img = new Image();
             img.src = `assets/winter_boy/f${i}.png?v=${winterVersion}`;
@@ -1121,7 +1132,7 @@
         const grassBoyFrameCount = 7;
         for (let i = 0; i < grassBoyFrameCount; i++) {
             const img = new Image();
-            img.src = `assets/grass_relax/f${i}.png?v=relax-motion-v19`;
+            img.src = `assets/grass_relax/f${i}.png?v=regenerated-about-v23`;
             grassBoyFrames[i] = img;
         }
         let grassRelaxActive = false;
@@ -1148,11 +1159,10 @@
             grassRelax.classList.add('is-active');
             window.sakura.start();
 
-            const grassFrameTimes = [0, 220, 400, 575, 750, 930, 1120];
             grassBoyFrames.forEach((frame, index) => {
                 grassTimers.push(setTimeout(() => {
                     grassBoyAnimator.src = frame.src;
-                }, grassFrameTimes[index]));
+                }, [0, 220, 400, 575, 750, 930, 1120][index]));
             });
             grassTimers.push(setTimeout(() => grassRelax.classList.add('is-relaxed'), 1280));
         }

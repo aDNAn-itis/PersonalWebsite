@@ -35,8 +35,7 @@ def remove_chroma_green(source_name, output_name):
 bridge_one = remove_chroma_green("bridge-pose-1-green.png", "bridge-pose-1-cutout.png")
 bridge_two = remove_chroma_green("bridge-pose-2-green.png", "bridge-pose-2-cutout.png")
 
-# Seven genuine drawings, like the winter sequence. Each pose advances a real
-# body action; complete silhouettes are never dissolved into one another.
+# Real pose progression from the compact about pose into the relaxed pose.
 keyframes = [
     seated_source,
     fit_image(bridge_one),
