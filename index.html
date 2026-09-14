@@ -55,6 +55,7 @@
         <img class="interactive-item" id="laptop" src="assets/a/laptop_transparent.png" alt="Laptop">
         <img class="interactive-item" id="paper" src="assets/a/paper_transparent.png" alt="Paper & Pen">
         <img class="interactive-item" id="phone" src="assets/a/phone_transparent.png" alt="Phone">
+        <img id="lap-book-cover" class="lap-book-cover" src="assets/book_reading/hercule-poirots-christmas-cover.jpg?v=2" alt="Hercule Poirot’s Christmas resting on the boy’s lap">
 
         <!-- Cafe project blackboard -->
         <div id="lofi-window" class="table-scene-item lofi-window">
@@ -352,12 +353,18 @@
             box.addEventListener('mouseenter', () => {
                 const targetName = box.getAttribute('data-target');
                 document.getElementById(targetName).classList.add('is-hovered');
+                if (targetName === 'boy' && document.body.classList.contains('winter-boy-active')) {
+                    document.getElementById('winter-boy').classList.add('is-hovered');
+                }
                 const snowCap = document.getElementById(`${targetName}-surface-snow`);
                 if (snowCap && targetName !== 'boy') snowCap.classList.add('is-hovered');
             });
             box.addEventListener('mouseleave', () => {
                 const targetName = box.getAttribute('data-target');
                 document.getElementById(targetName).classList.remove('is-hovered');
+                if (targetName === 'boy') {
+                    document.getElementById('winter-boy').classList.remove('is-hovered');
+                }
                 const snowCap = document.getElementById(`${targetName}-surface-snow`);
                 if (snowCap && targetName !== 'boy') snowCap.classList.remove('is-hovered');
             });
@@ -372,9 +379,14 @@
                 const targetName = box.getAttribute('data-target');
                 const returningFromHeadphoneBoy = grassRelaxActive && targetName === 'boy';
                 const readingInSakura = grassRelaxActive && targetName === 'books';
+                const readingInWinter = winterActive && targetName === 'books';
 
                 if (readingInSakura) {
                     playSakuraReading();
+                    return;
+                }
+                if (readingInWinter) {
+                    playLapBook(true);
                     return;
                 }
 
@@ -426,7 +438,7 @@
                 
                 // Keep both books in place and animate only Cosmos on top.
                 if (targetName === 'books') {
-                    playCosmosMagic();
+                    playLapBook(false);
                     return;
                 }
 
@@ -1141,6 +1153,32 @@
         }
 
         // ----------------------------------------------------
+        // Simple lap-book states for the normal and winter boys
+        // ----------------------------------------------------
+        let lapBookActive = false;
+        let lapBookTimer = 0;
+
+        function clearLapBooks() {
+            clearTimeout(lapBookTimer);
+            lapBookActive = false;
+            document.body.classList.remove('lap-book-active');
+        }
+
+        function playLapBook(isWinter) {
+            clearTimeout(lapBookTimer);
+            if (lapBookActive) {
+                clearLapBooks();
+                return;
+            }
+
+            playCosmosMagic();
+            lapBookTimer = setTimeout(() => {
+                lapBookActive = true;
+                document.body.classList.add('lap-book-active');
+            }, 720);
+        }
+
+        // ----------------------------------------------------
         // Headphone cable connection
         // ----------------------------------------------------
         const headphoneConnect = document.getElementById('headphone-connect');
@@ -1340,6 +1378,7 @@
         }
 
         function resetActiveDeskAnimations(exceptTarget = '') {
+            if (exceptTarget !== 'books') clearLapBooks();
             if (exceptTarget !== 'grass-relax') clearGrassRelax();
             if (exceptTarget !== 'books') {
                 cosmosAnimationTimers.forEach(clearTimeout);
