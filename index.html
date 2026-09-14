@@ -274,6 +274,12 @@
     </script>
     <script src="sakura.js?v=2"></script>
     <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+            });
+        }
+
         // Keep the layered artwork hidden until every initial image has loaded.
         // This prevents the fallback floor and the browser's white canvas from
         // flashing before the completed room is painted.
