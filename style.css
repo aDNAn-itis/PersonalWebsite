@@ -503,10 +503,11 @@ body.table-active .laptop-scene-item {
    FAIRY LIGHTS ASSET
    ============================================ */
 .lofi-fairy-lights {
-    position: absolute;
-    top: -4%; /* Pulled down just slightly so they drape beautifully */
+    position: fixed;
+    top: -5vw; /* Positioned cleanly above the blackboard while draping edge-to-edge */
     left: 0;
-    width: 100%;
+    width: 100vw;
+    height: auto;
     z-index: 55;
     opacity: 0;
     pointer-events: none;
