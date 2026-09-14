@@ -6,15 +6,37 @@
     font-display: swap;
 }
 
-body {
+:root {
+    --app-w: 100vw;
+    --app-h: 100vh;
+}
+
+html, body {
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
     background-color: #f7f2e8;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    overflow: hidden; /* Prevent any scrollbars from the bleeding edges */
+    min-height: 100dvh;
+}
+
+#app-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
 }
 
 /* Audio-only YouTube embed used by the headphone interaction. */
@@ -37,13 +59,16 @@ body.page-loading .background-picker {
 
 .scene-container {
     position: relative;
-    width: min(100vw, calc(100vh * (1080 / 723)));
+    width: min(var(--app-w), calc(var(--app-h) * (1080 / 723)));
     aspect-ratio: 1080 / 723;
-    max-height: 100vh;
-    max-width: 100vw;
+    max-height: var(--app-h);
+    max-width: var(--app-w);
     box-shadow: none;
     border-radius: 0;
     z-index: 1; /* Establish stacking context */
+    overflow: visible;
+    container-type: inline-size;
+    container-name: scene;
     opacity: 1;
     transition: opacity .28s ease-out;
 }
@@ -53,6 +78,8 @@ body.page-loading .background-picker {
     content: '';
     position: fixed;
     inset: 0;
+    width: 100%;
+    height: 100%;
     background-image: var(--scene-floor, url('assets/a/black%20_background.png'));
     background-size: cover;
     background-position: center;
@@ -155,33 +182,46 @@ body.winter-boy-active #boy { opacity: 0 !important; }
 
 .sapporo-note {
     position: absolute;
-    top: 10%;
-    left: 49%;
+    top: 7%;
+    left: 41%;
     margin: 0;
     color: #57463c;
-    font: 20px/1.08 'Patrick Hand', cursive;
+    font-family: 'Patrick Hand', cursive;
+    font-size: clamp(9px, 1.7cqw, 21px);
+    line-height: 1.15;
     letter-spacing: .02em;
     opacity: 0;
+    white-space: nowrap;
     transform: translateY(8px) rotate(-2deg);
     transition: opacity .55s ease, transform .55s ease;
     z-index: 4;
 }
 
-.sapporo-note strong { color: #7a3030; font-size: 25px; font-weight: 400; }
-.winter-boy.is-settled .sapporo-note { opacity: 1; transform: translateY(0) rotate(-2deg); }
+.sapporo-note strong {
+    color: #7a3030;
+    font-size: clamp(11px, 2.15cqw, 26px);
+    font-weight: 400;
+}
+
+.winter-boy.is-settled .sapporo-note {
+    opacity: 1;
+    transform: translateY(0) rotate(-2deg);
+}
 
 .sapporo-note.intro-note {
-    top: 10%;
-    left: 75%;
-    width: 23%;
-    line-height: 1.3;
+    top: 6%;
+    left: 71%;
+    width: 27%;
+    white-space: normal;
+    font-size: clamp(8px, 1.35cqw, 16px);
+    line-height: 1.25;
 }
 
 .winter-snow {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     overflow: hidden;
     opacity: 0;
     pointer-events: none;
@@ -258,13 +298,13 @@ body.winter-boy-active .winter-snow,
     position: absolute;
     top: -5vh;
     left: var(--snow-x);
-    width: var(--snow-size);
-    height: var(--snow-size);
+    width: clamp(1px, var(--snow-size-cqw, var(--snow-size)), 6.5px);
+    height: clamp(1px, var(--snow-size-cqw, var(--snow-size)), 6.5px);
     border-radius: 50%;
     background: #fff;
     opacity: var(--snow-alpha);
-    filter: blur(var(--snow-blur));
-    box-shadow: 0 0 4px rgba(255,255,255,.7);
+    filter: blur(clamp(0px, var(--snow-blur, 0.4px), 1px));
+    box-shadow: 0 0 clamp(1px, 0.22cqw, 3.5px) rgba(255,255,255,.7);
     animation: sapporo-snow var(--snow-speed) linear var(--snow-delay) infinite;
 }
 
@@ -286,8 +326,8 @@ body.winter-boy-active .winter-snow,
 .snow-piles {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     z-index: 0;
     opacity: 0;
     filter: none;
@@ -506,7 +546,7 @@ body.table-active .laptop-scene-item {
     position: fixed;
     top: -5vw; /* Positioned cleanly above the blackboard while draping edge-to-edge */
     left: 0;
-    width: 100vw;
+    width: 100%;
     height: auto;
     z-index: 55;
     opacity: 0;
@@ -618,8 +658,8 @@ body.headphone-connected #phone {
 .sakura-layer {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     pointer-events: none;
 }
 .sakura-ground { z-index: 0; }
@@ -669,7 +709,9 @@ body.headphone-connected #phone {
     bottom: 8%;
     margin: 0;
     color: rgba(245,239,210,.94);
-    font: 23px/1.12 'Patrick Hand', cursive;
+    font-family: 'Patrick Hand', cursive;
+    font-size: clamp(10px, 2.1cqw, 24px);
+    line-height: 1.15;
     letter-spacing: .02em;
     opacity: 0;
     transform: translateY(12px);
@@ -749,18 +791,19 @@ body[data-room="room3"] .blackboard-project-layer {
 
 .chalk-kicker {
     min-height: 1.1em;
-    margin-top: 2%;
-    font: 400 clamp(8px, .84vw, 14px)/1.2 'Patrick Hand', cursive;
+    margin-top: 1%;
+    font: 400 clamp(7px, 0.95cqw, 14px)/1.2 'Patrick Hand', cursive;
     letter-spacing: .12em;
-    opacity: .75;
+    opacity: .85;
 }
 
 .blackboard-project-layer h2 {
-    min-height: 1.2em;
-    margin: 1.5% 0 1%;
-    font-size: clamp(20px, 3.1vw, 48px);
-    line-height: 1;
+    min-height: 1.15em;
+    margin: 1% 0;
+    font-size: clamp(13px, 2.7cqw, 42px);
+    line-height: 1.05;
     font-weight: 400;
+    letter-spacing: 0.01em;
 }
 
 .blackboard-project-layer p {
@@ -768,34 +811,34 @@ body[data-room="room3"] .blackboard-project-layer {
 }
 
 #chalk-description {
-    min-height: 3.4em;
-    max-width: 76%;
+    min-height: 2.8em;
+    max-width: 84%;
     margin: 1% 0;
-    font-size: clamp(9px, 1.05vw, 17px);
-    line-height: 1.42;
+    font-size: clamp(8px, 1.2cqw, 17px);
+    line-height: 1.38;
 }
 
 .chalk-stack {
     min-height: 1.2em;
-    max-width: 75%;
-    margin: 1.5% 0 0;
-    color: rgba(218, 232, 205, .86);
-    font: clamp(8px, .84vw, 14px)/1.3 'Patrick Hand', cursive;
+    max-width: 84%;
+    margin: 1% 0 0;
+    color: rgba(218, 232, 205, .9);
+    font: clamp(7.5px, 0.98cqw, 14px)/1.3 'Patrick Hand', cursive;
 }
 
 #chalk-project-link {
     margin-top: auto;
     color: #f2d79f;
-    font-size: clamp(8px, .82vw, 14px);
+    font-size: clamp(8px, 1.05cqw, 14px);
     text-decoration: underline wavy rgba(242, 215, 159, .55);
-    text-underline-offset: 4px;
+    text-underline-offset: 3px;
     opacity: 0;
-    transform: translateY(5px);
+    transform: translateY(4px);
     transition: opacity .35s ease, transform .35s ease;
 }
 
 #chalk-project-link.is-visible {
-    opacity: .9;
+    opacity: .92;
     transform: translateY(0);
 }
 
@@ -805,16 +848,16 @@ body[data-room="room3"] .blackboard-project-layer {
     bottom: 0;
     display: flex;
     align-items: center;
-    gap: 7px;
-    color: rgba(246, 231, 190, .78);
-    font: 400 clamp(8px, .76vw, 13px)/1 'Patrick Hand', cursive;
+    gap: 6px;
+    color: rgba(246, 231, 190, .82);
+    font: 400 clamp(7.5px, 0.95cqw, 13px)/1 'Patrick Hand', cursive;
 }
 
 .blackboard-project-controls button {
-    min-width: 22px;
-    padding: 0 3px;
+    min-width: clamp(14px, 1.6cqw, 22px);
+    padding: 0 2px;
     color: rgba(246, 231, 190, .92);
-    font: 700 clamp(17px, 1.8vw, 28px)/1 'Patrick Hand', cursive;
+    font: 400 clamp(11px, 1.6cqw, 24px)/1 'Patrick Hand', cursive;
     text-shadow: 0 0 1px rgba(255,255,255,.45);
     background: none;
     border: 0;
@@ -834,8 +877,8 @@ body[data-room="room3"] .blackboard-project-layer {
     z-index: 8;
     left: 0;
     top: 0;
-    width: clamp(12px, 1.4vw, 22px);
-    height: clamp(3px, .32vw, 5px);
+    width: clamp(8px, 1.3cqw, 22px);
+    height: clamp(2.5px, .32cqw, 5px);
     border-radius: 4px;
     background: #f1dfb5;
     box-shadow: 0 0 4px rgba(255,245,210,.5);
@@ -870,7 +913,7 @@ body[data-room="room3"] .blackboard-project-layer {
     z-index: 9;
     top: 0;
     left: 0;
-    width: clamp(44px, 6vw, 92px);
+    width: clamp(28px, 5.2cqw, 92px);
     aspect-ratio: 2020 / 778;
     height: auto;
     background: url('assets/rooms/room3/duster.png') center / contain no-repeat;
@@ -886,7 +929,7 @@ body[data-room="room3"] .blackboard-project-layer {
 .chalk-dust-puff {
     position: absolute;
     z-index: 7;
-    width: clamp(14px, 2.2vw, 34px);
+    width: clamp(10px, 1.8cqw, 34px);
     aspect-ratio: 1;
     border-radius: 50%;
     pointer-events: none;
@@ -1017,7 +1060,7 @@ body.bike-active .bike-scene-item {
 
 .panel h2 {
     margin-top: 0;
-    font-size: 4.5rem;
+    font-size: clamp(2.2rem, 4.5vw, 4.2rem);
     font-weight: 700;
     margin-bottom: 15px;
     letter-spacing: -0.04em;
@@ -1026,7 +1069,7 @@ body.bike-active .bike-scene-item {
 
 .panel p {
     line-height: 1.6;
-    font-size: 1.6rem;
+    font-size: clamp(1.05rem, 1.8vw, 1.55rem);
     color: #222;
     margin: 0;
     font-weight: 400;
@@ -1225,4 +1268,189 @@ body.bookshelf-active .hitbox-container {
 @keyframes play-window {
     0% { transform: translateX(0); }
     100% { transform: translateX(-95%); }
+}
+
+/* ============================================
+   MOBILE & TABLET LANDSCAPE-MODE FORCING SYSTEM
+   ============================================ */
+
+/* Responsive adjustments for landscape mobile or short viewports */
+@media screen and (max-height: 600px), screen and (max-width: 900px) {
+    .panel h2 {
+        font-size: clamp(1.8rem, 8vh, 2.8rem);
+        margin-bottom: 8px;
+    }
+    .panel p {
+        font-size: clamp(0.95rem, 3.8vh, 1.25rem);
+        line-height: 1.4;
+    }
+    .sapporo-note {
+        top: 6%;
+        left: 39%;
+        font-size: clamp(8px, 1.6cqw, 14px);
+    }
+    .sapporo-note strong {
+        font-size: clamp(10px, 2.0cqw, 17px);
+    }
+    .sapporo-note.intro-note {
+        top: 5%;
+        left: 69%;
+        width: 29%;
+        font-size: clamp(7.5px, 1.25cqw, 12px);
+        line-height: 1.2;
+    }
+    .grass-note {
+        font-size: clamp(9px, 1.7cqw, 16px);
+    }
+    body[data-room="room3"] .blackboard-project-layer {
+        top: 10%;
+        left: 10%;
+        width: 80%;
+        height: 75%;
+    }
+    .chalk-kicker {
+        font-size: clamp(6.5px, 0.9cqw, 10px);
+    }
+    .blackboard-project-layer h2 {
+        font-size: clamp(10.5px, 2.2cqw, 18px);
+        margin: 0.5% 0;
+    }
+    #chalk-description {
+        font-size: clamp(6.5px, 1.05cqw, 11px);
+        line-height: 1.25;
+        max-width: 88%;
+        min-height: auto;
+    }
+    .chalk-stack {
+        font-size: clamp(6px, 0.9cqw, 9.5px);
+        max-width: 88%;
+        margin: 0.5% 0 0;
+    }
+    #chalk-project-link {
+        font-size: clamp(6.5px, 0.95cqw, 10.5px);
+    }
+    .blackboard-project-controls {
+        font-size: clamp(6.5px, 0.9cqw, 10.5px);
+    }
+    .blackboard-project-controls button {
+        font-size: clamp(8px, 1.3cqw, 13px);
+    }
+    .close-btn {
+        top: max(12px, env(safe-area-inset-top));
+        left: max(14px, env(safe-area-inset-left));
+        padding: 6px 14px;
+        font-size: 0.85rem;
+    }
+    .background-picker {
+        bottom: max(10px, env(safe-area-inset-bottom));
+        right: max(12px, env(safe-area-inset-right));
+        padding: 4px 8px;
+        font-size: 13px;
+        gap: 2px;
+    }
+    .background-picker label {
+        font-size: 12px;
+    }
+    .background-picker select {
+        font-size: 12px;
+        padding: 2px 4px;
+    }
+}
+
+/* Force landscape view on mobile & tablet when held in portrait */
+@media screen and (orientation: portrait) and ((hover: none) or (max-width: 1024px)) {
+    :root {
+        --app-w: 100vh;
+        --app-w: 100dvh;
+        --app-h: 100vw;
+        --app-h: 100dvw;
+    }
+
+    #app-wrapper {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        width: 100vh;
+        width: 100dvh;
+        height: 100vw;
+        height: 100dvw;
+        transform: translate(-50%, -50%) rotate(90deg);
+        transform-origin: center center;
+        overflow: hidden;
+    }
+
+    .lofi-fairy-lights {
+        top: calc(-0.07 * var(--app-w));
+    }
+}
+
+/* Subtle, animated rotate reminder hint for portrait users */
+.rotate-hint {
+    display: none;
+}
+
+@media screen and (orientation: portrait) and ((hover: none) or (max-width: 1024px)) {
+    .rotate-hint {
+        display: flex;
+        position: fixed;
+        bottom: max(20px, env(safe-area-inset-bottom));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 99999;
+        pointer-events: auto;
+        animation: rotateHintPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    .rotate-hint.is-dismissed {
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 15px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .rotate-hint-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: rgba(36, 30, 26, 0.88);
+        color: #fff;
+        padding: 9px 15px;
+        border-radius: 24px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .rotate-hint-svg {
+        flex-shrink: 0;
+        animation: rotatePhoneIcon 2.4s ease-in-out infinite;
+    }
+
+    .rotate-hint-badge button {
+        background: none;
+        border: 0;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 0 0 6px;
+    }
+
+    @keyframes rotatePhoneIcon {
+        0%, 20% { transform: rotate(0deg); }
+        50%, 70% { transform: rotate(90deg); }
+        90%, 100% { transform: rotate(0deg); }
+    }
+
+    @keyframes rotateHintPop {
+        from { opacity: 0; transform: translate(-50%, 20px) scale(0.92); }
+        to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    }
 }

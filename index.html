@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
-
-    <div class="scene-container">
+    <div id="app-wrapper">
+        <div class="scene-container">
 
         <!-- Ground accumulation stays beneath every illustrated asset, exactly like sakura-ground -->
         <canvas class="snow-piles" id="snow-piles" width="1080" height="723" aria-hidden="true"></canvas>
@@ -229,6 +229,21 @@
             </div>
         </div>
     </div>
+    </div>
+
+    <!-- Portrait Orientation Helper Hint -->
+    <aside id="rotate-hint" class="rotate-hint" aria-live="polite">
+        <div class="rotate-hint-badge">
+            <svg class="rotate-hint-svg" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="5" y="3" width="14" height="18" rx="2" stroke="currentColor"/>
+                <path d="M12 18h.01" stroke-linecap="round"/>
+                <path d="M18 8l2.5-2.5-2.5-2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M20.5 5.5A7.5 7.5 0 0 0 8 5" stroke-linecap="round"/>
+            </svg>
+            <span>Rotate phone to landscape</span>
+            <button id="rotate-hint-close" type="button" aria-label="Dismiss">&times;</button>
+        </div>
+    </aside>
     
     <script src="song.js"></script>
     <script>
@@ -591,15 +606,16 @@
             layer.querySelectorAll('i').forEach(flake => {
                 const depth = minDepth + Math.random() * (maxDepth - minDepth);
                 flake.style.setProperty('--snow-x', `${Math.random() * 102 - 1}%`);
-                flake.style.setProperty('--snow-size', `${1.2 + depth * 5.3}px`);
-                flake.style.setProperty('--snow-speed', `${3.4 + (1 - depth) * 4.2}s`);
-                flake.style.setProperty('--snow-delay', `${-Math.random() * 8}s`);
-                flake.style.setProperty('--snow-sway-a', `${-70 + Math.random() * 140}px`);
-                flake.style.setProperty('--snow-sway-b', `${-90 + Math.random() * 180}px`);
-                flake.style.setProperty('--snow-sway-c', `${-65 + Math.random() * 130}px`);
-                flake.style.setProperty('--snow-end', `${-55 + Math.random() * 110}px`);
-                flake.style.setProperty('--snow-alpha', `${.24 + depth * .72}`);
-                flake.style.setProperty('--snow-blur', `${(1 - depth) * .7}px`);
+                flake.style.setProperty('--snow-size', `${(1.2 + depth * 5.3).toFixed(1)}px`);
+                flake.style.setProperty('--snow-size-cqw', `${(0.10 + depth * 0.30).toFixed(3)}cqw`);
+                flake.style.setProperty('--snow-speed', `${(3.4 + (1 - depth) * 4.2).toFixed(2)}s`);
+                flake.style.setProperty('--snow-delay', `${(-Math.random() * 8).toFixed(2)}s`);
+                flake.style.setProperty('--snow-sway-a', `${(-4.5 + Math.random() * 9.0).toFixed(2)}cqw`);
+                flake.style.setProperty('--snow-sway-b', `${(-6.0 + Math.random() * 12.0).toFixed(2)}cqw`);
+                flake.style.setProperty('--snow-sway-c', `${(-4.2 + Math.random() * 8.4).toFixed(2)}cqw`);
+                flake.style.setProperty('--snow-end', `${(-3.8 + Math.random() * 7.6).toFixed(2)}cqw`);
+                flake.style.setProperty('--snow-alpha', `${(.24 + depth * .72).toFixed(2)}`);
+                flake.style.setProperty('--snow-blur', `${((1 - depth) * 0.05).toFixed(3)}cqw`);
             });
         }
         populateSnowLayer(document.querySelector('.winter-snow-back'), 80, .06, .38);
@@ -1532,6 +1548,28 @@
                 pomoChar.classList.remove('char-dip');
             }, 1000);
         }
+
+        // Mobile & Tablet Landscape & Orientation Helper
+        (function() {
+            const rotateHint = document.getElementById('rotate-hint');
+            const closeBtn = document.getElementById('rotate-hint-close');
+            const dismiss = () => {
+                if (rotateHint) rotateHint.classList.add('is-dismissed');
+            };
+            if (closeBtn) closeBtn.addEventListener('click', (e) => { e.stopPropagation(); dismiss(); });
+            if (rotateHint) {
+                rotateHint.addEventListener('click', dismiss);
+                setTimeout(dismiss, 6500);
+            }
+
+            function tryLockLandscape() {
+                if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                    screen.orientation.lock('landscape').catch(() => {});
+                }
+            }
+            window.addEventListener('touchstart', tryLockLandscape, { once: true, passive: true });
+            window.addEventListener('click', tryLockLandscape, { once: true });
+        })();
 
     </script>
 </body>
