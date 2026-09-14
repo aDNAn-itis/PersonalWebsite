@@ -679,8 +679,7 @@ body.headphone-connected #phone {
     opacity: 1;
     visibility: visible;
     transition-delay: 0s;
-    pointer-events: auto;
-    cursor: pointer;
+    pointer-events: none;
 }
 
 .grass-boy-animator {
@@ -1009,7 +1008,7 @@ body.bike-active .hitbox {
     pointer-events: none !important;
 }
 
-/* Completely disable desk hitboxes whenever ANY scene or modal is active,
+/* Completely disable desk hitboxes whenever a blocking scene or modal is active,
    so clicking around never triggers or pops up other assets */
 body.table-active .hitbox-container,
 body.table-active .hitbox,
@@ -1021,17 +1020,32 @@ body.bike-active .hitbox-container,
 body.bike-active .hitbox,
 body.bookshelf-active .hitbox-container,
 body.bookshelf-active .hitbox,
-body.cosmos-magic-active .hitbox-container,
-body.cosmos-magic-active .hitbox,
 body.headphone-connected .hitbox-container,
 body.headphone-connected .hitbox,
-body.grass-relax-active .hitbox-container,
-body.grass-relax-active .hitbox,
 body.modal-open .hitbox-container,
 body.modal-open .hitbox,
 body:has(.modal-active) .hitbox-container,
-body:has(.modal-active) .hitbox,
-body.winter-boy-active .hitbox:not([data-target="boy"]) {
+body:has(.modal-active) .hitbox {
+    pointer-events: none !important;
+}
+
+/* Relaxed grass boy hitbox expands downwards to cover the lounging body */
+body.grass-relax-active .hitbox[data-target="boy"] {
+    top: 16%;
+    left: 32%;
+    width: 26%;
+    height: 58%;
+}
+
+/* During fullscreen scenes (bike, laptop table), keep ambient boy overlays hidden */
+body.table-active .winter-boy,
+body.laptop-opening .winter-boy,
+body.bike-active .winter-boy,
+body.table-active .grass-relax,
+body.laptop-opening .grass-relax,
+body.bike-active .grass-relax {
+    opacity: 0 !important;
+    visibility: hidden !important;
     pointer-events: none !important;
 }
 

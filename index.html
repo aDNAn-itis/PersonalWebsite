@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=12">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -128,7 +128,7 @@
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
             <div class="hitbox" data-target="cycle" style="top: 57.4%; left: 55.3%; width: 39.1%; height: 31.0%;"></div>
-            <div class="hitbox" data-target="boy" style="top: 13.8%; left: 16.3%; width: 58.1%; height: 60.3%;"></div>
+            <div class="hitbox" data-target="boy" style="top: 17.5%; left: 32.5%; width: 22.5%; height: 40.5%;"></div>
             <!-- Bag hitbox moved up by 3% to match the image -->
             <div class="hitbox" data-target="bag" style="top: 40.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
             <div class="hitbox" data-target="headphone" style="top: 18.1%; left: 51.2%; width: 13.7%; height: 21.7%;"></div>
@@ -320,9 +320,7 @@
                    document.body.classList.contains('laptop-opening') ||
                    document.body.classList.contains('bike-active') ||
                    document.body.classList.contains('bookshelf-active') ||
-                   document.body.classList.contains('cosmos-magic-active') ||
                    document.body.classList.contains('headphone-connected') ||
-                   document.body.classList.contains('grass-relax-active') ||
                    document.body.classList.contains('modal-open') ||
                    document.getElementById('modal-overlay').classList.contains('modal-active');
         }
@@ -365,14 +363,8 @@
             box.addEventListener('click', () => {
                 const targetName = box.getAttribute('data-target');
 
-                // If any scene or modal is currently active, ignore clicks
+                // If any blocking scene or modal is currently active, ignore clicks
                 if (isAnySceneActive()) {
-                    if (document.body.classList.contains('winter-boy-active') && targetName === 'boy') {
-                        playWinterBoy();
-                    }
-                    return;
-                }
-                if (document.body.classList.contains('winter-boy-active') && targetName !== 'boy') {
                     return;
                 }
 
@@ -381,21 +373,24 @@
                     panel.classList.remove('active');
                 });
                 
-                const returningFromHeadphoneBoy = grassRelaxActive && targetName === 'boy';
-
                 resetActiveDeskAnimations(targetName);
 
-                // A second click on the headphone boy returns to the default
-                // desk rather than immediately starting the winter scene.
-                if (returningFromHeadphoneBoy) {
-                    document.querySelectorAll('.interactive-item').forEach(item => {
-                        item.style.opacity = '';
-                        item.style.transform = '';
-                    });
+                // Clicking on the boy:
+                // - In sakura relax mode: reverts to default desk
+                // - In winter mode: reverts to default desk
+                // - In default mode: starts winter mode
+                if (targetName === 'boy') {
+                    if (grassRelaxActive) {
+                        clearGrassRelax();
+                        document.querySelectorAll('.interactive-item').forEach(item => {
+                            item.style.opacity = '';
+                            item.style.transform = '';
+                        });
+                        return;
+                    }
+                    playWinterBoy();
                     return;
                 }
-                
-
 
                 // If the cycle is clicked, trigger the bike ride directly!
                 if (targetName === 'cycle') {
@@ -436,12 +431,10 @@
                 }
 
                 if (targetName === 'headphone') {
+                    if (winterActive) {
+                        playWinterBoy();
+                    }
                     playHeadphoneConnection();
-                    return;
-                }
-
-                if (targetName === 'boy') {
-                    playWinterBoy();
                     return;
                 }
 
@@ -1230,12 +1223,6 @@
         // Headphones payoff: the boy relaxes in the existing desk scene
         // ----------------------------------------------------
         const grassRelax = document.getElementById('grass-relax');
-        grassRelax.addEventListener('click', () => {
-            if (grassRelaxActive) {
-                clearGrassRelax();
-                resetActiveDeskAnimations();
-            }
-        });
         const grassBoyAnimator = document.getElementById('grass-boy-animator');
         const grassBoyFrames = [];
         const grassBoyFrameCount = 7;
@@ -1277,7 +1264,6 @@
         }
 
         function resetActiveDeskAnimations(exceptTarget = '') {
-            if (exceptTarget !== 'grass-relax') clearGrassRelax();
             if (exceptTarget !== 'books') {
                 cosmosAnimationTimers.forEach(clearTimeout);
                 cosmosAnimationTimers = [];
@@ -1295,17 +1281,6 @@
                 document.body.classList.remove('headphone-connected');
                 document.getElementById('headphone').classList.remove('is-hovered');
                 headphoneConnectAnimator.src = headphoneConnectFrames[0].src;
-            }
-
-            if (exceptTarget !== 'boy') {
-                winterTimers.forEach(clearTimeout);
-                winterTimers = [];
-                winterActive = false;
-                clearSnowPiles();
-                winterBoy.classList.remove('is-active', 'is-settled');
-                document.body.classList.remove('winter-boy-active');
-                winterBoyAnimator.src = winterFrames[0].src;
-                document.getElementById('boy').classList.remove('is-hovered');
             }
         }
 
