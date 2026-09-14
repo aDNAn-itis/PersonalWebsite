@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -128,7 +128,7 @@
         <div class="hitbox-container">
             <!-- Largest hitboxes first so smaller objects on top can still be clicked if they overlap -->
             <div class="hitbox" data-target="cycle" style="top: 57.4%; left: 55.3%; width: 39.1%; height: 31.0%;"></div>
-            <div class="hitbox" data-target="boy" style="top: 17.5%; left: 32.5%; width: 22.5%; height: 40.5%;"></div>
+            <div class="hitbox" data-target="boy" style="top: 13.8%; left: 16.3%; width: 58.1%; height: 60.3%;"></div>
             <!-- Bag hitbox moved up by 3% to match the image -->
             <div class="hitbox" data-target="bag" style="top: 40.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
             <div class="hitbox" data-target="headphone" style="top: 18.1%; left: 51.2%; width: 13.7%; height: 21.7%;"></div>
@@ -270,8 +270,6 @@
                 requestAnimationFrame(() => document.body.classList.remove('page-loading'));
             });
         });
-        // Safety fallback: ensure page is visible even if an asset fails or delays loading
-        setTimeout(() => document.body.classList.remove('page-loading'), 1200);
 
         const backgroundFiles = {
             original: 'black%20_background.png',
@@ -315,16 +313,6 @@
             preview.src = path;
         });
 
-        function isAnySceneActive() {
-            return document.body.classList.contains('table-active') ||
-                   document.body.classList.contains('laptop-opening') ||
-                   document.body.classList.contains('bike-active') ||
-                   document.body.classList.contains('bookshelf-active') ||
-                   document.body.classList.contains('headphone-connected') ||
-                   document.body.classList.contains('modal-open') ||
-                   document.getElementById('modal-overlay').classList.contains('modal-active');
-        }
-
         // Use Javascript to link the invisible hitboxes to the image animations and click events
         document.querySelectorAll('.hitbox').forEach(box => {
             const accessibleNames = {
@@ -344,53 +332,41 @@
             });
             // Hover logic
             box.addEventListener('mouseenter', () => {
-                if (isAnySceneActive()) return;
                 const targetName = box.getAttribute('data-target');
-                const targetEl = document.getElementById(targetName);
-                if (targetEl) targetEl.classList.add('is-hovered');
+                document.getElementById(targetName).classList.add('is-hovered');
                 const snowCap = document.getElementById(`${targetName}-surface-snow`);
                 if (snowCap && targetName !== 'boy') snowCap.classList.add('is-hovered');
             });
             box.addEventListener('mouseleave', () => {
                 const targetName = box.getAttribute('data-target');
-                const targetEl = document.getElementById(targetName);
-                if (targetEl) targetEl.classList.remove('is-hovered');
+                document.getElementById(targetName).classList.remove('is-hovered');
                 const snowCap = document.getElementById(`${targetName}-surface-snow`);
                 if (snowCap && targetName !== 'boy') snowCap.classList.remove('is-hovered');
             });
             
             // Click logic - Cinematic Isolation
             box.addEventListener('click', () => {
-                const targetName = box.getAttribute('data-target');
-
-                // If any blocking scene or modal is currently active, ignore clicks
-                if (isAnySceneActive()) {
-                    return;
-                }
-
                 // Hide all panels first
                 document.querySelectorAll('.panel').forEach(panel => {
                     panel.classList.remove('active');
                 });
                 
+                const targetName = box.getAttribute('data-target');
+                const returningFromHeadphoneBoy = grassRelaxActive && targetName === 'boy';
+
                 resetActiveDeskAnimations(targetName);
 
-                // Clicking on the boy:
-                // - In sakura relax mode: reverts to default desk
-                // - In winter mode: reverts to default desk
-                // - In default mode: starts winter mode
-                if (targetName === 'boy') {
-                    if (grassRelaxActive) {
-                        clearGrassRelax();
-                        document.querySelectorAll('.interactive-item').forEach(item => {
-                            item.style.opacity = '';
-                            item.style.transform = '';
-                        });
-                        return;
-                    }
-                    playWinterBoy();
+                // A second click on the headphone boy returns to the default
+                // desk rather than immediately starting the winter scene.
+                if (returningFromHeadphoneBoy) {
+                    document.querySelectorAll('.interactive-item').forEach(item => {
+                        item.style.opacity = '';
+                        item.style.transform = '';
+                    });
                     return;
                 }
+                
+
 
                 // If the cycle is clicked, trigger the bike ride directly!
                 if (targetName === 'cycle') {
@@ -431,10 +407,12 @@
                 }
 
                 if (targetName === 'headphone') {
-                    if (winterActive) {
-                        playWinterBoy();
-                    }
                     playHeadphoneConnection();
+                    return;
+                }
+
+                if (targetName === 'boy') {
+                    playWinterBoy();
                     return;
                 }
 
@@ -458,7 +436,6 @@
         });
 
         function openItemPanel(targetName) {
-                document.body.classList.add('modal-open');
                 // Show the specific panel content
                 const targetId = targetName + '-content';
                 const targetPanel = document.getElementById(targetId);
@@ -1223,6 +1200,12 @@
         // Headphones payoff: the boy relaxes in the existing desk scene
         // ----------------------------------------------------
         const grassRelax = document.getElementById('grass-relax');
+        grassRelax.addEventListener('click', () => {
+            if (grassRelaxActive) {
+                clearGrassRelax();
+                resetActiveDeskAnimations();
+            }
+        });
         const grassBoyAnimator = document.getElementById('grass-boy-animator');
         const grassBoyFrames = [];
         const grassBoyFrameCount = 7;
@@ -1264,6 +1247,7 @@
         }
 
         function resetActiveDeskAnimations(exceptTarget = '') {
+            if (exceptTarget !== 'grass-relax') clearGrassRelax();
             if (exceptTarget !== 'books') {
                 cosmosAnimationTimers.forEach(clearTimeout);
                 cosmosAnimationTimers = [];
@@ -1282,14 +1266,24 @@
                 document.getElementById('headphone').classList.remove('is-hovered');
                 headphoneConnectAnimator.src = headphoneConnectFrames[0].src;
             }
+
+            if (exceptTarget !== 'boy') {
+                winterTimers.forEach(clearTimeout);
+                winterTimers = [];
+                winterActive = false;
+                clearSnowPiles();
+                winterBoy.classList.remove('is-active', 'is-settled');
+                document.body.classList.remove('winter-boy-active');
+                winterBoyAnimator.src = winterFrames[0].src;
+                document.getElementById('boy').classList.remove('is-hovered');
+            }
         }
 
         // Close Modal Logic - Restore the scene
-        function closeActiveModal() {
+        document.getElementById('close-btn').addEventListener('click', () => {
             document.getElementById('modal-overlay').classList.remove('modal-active');
             document.body.classList.remove('laptop-opening');
             document.body.classList.remove('table-active'); // Hide the table when closing
-            document.body.classList.remove('modal-open');
             resetActiveDeskAnimations();
             
             // Restore all items back to normal visibility and position
@@ -1297,16 +1291,6 @@
                 item.style.opacity = '1';
                 item.style.transform = ''; // Removes the inline style, reverting to CSS
             });
-        }
-
-        document.getElementById('close-btn').addEventListener('click', closeActiveModal);
-
-        // Clicking the background of text modals (notes, cat, bag, etc.) closes them
-        document.getElementById('modal-overlay').addEventListener('click', (e) => {
-            if (document.body.classList.contains('table-active')) return;
-            if (e.target.id === 'modal-overlay' || e.target.classList.contains('modal-content-container')) {
-                closeActiveModal();
-            }
         });
         
         // Room 3 chalkboard portfolio
