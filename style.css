@@ -691,34 +691,45 @@ body.headphone-connected #phone {
 }
 
 .grass-boy-animator {
-    z-index: 1;
+    z-index: 3;
     object-fit: contain;
     opacity: 1;
     transition: transform 1.1s cubic-bezier(.16,.8,.24,1), opacity .72s ease;
     filter: drop-shadow(0 12px 10px rgba(29,56,29,.2));
 }
 
-.sakura-reading-boy {
+.current-book-card {
     position: absolute;
-    inset: 0;
+    z-index: 2;
+    left: 31.5%;
+    top: 27%;
+    width: clamp(42px, 6.4cqw, 78px);
+    aspect-ratio: 800 / 1205;
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(145%, 18%) rotate(9deg) scale(.28);
+    transform-origin: right center;
+}
+
+.current-book-card img {
+    display: block;
     width: 100%;
     height: 100%;
-    z-index: 2;
-    object-fit: contain;
-    opacity: 0;
-    transform: translateY(10px) scale(.985);
-    filter: drop-shadow(0 12px 10px rgba(29,56,29,.2));
-    transition: opacity .36s ease, transform .55s cubic-bezier(.16,.8,.24,1);
+    object-fit: cover;
+    border-radius: 2px;
+    box-shadow: 0 7px 15px rgba(38, 24, 28, .28);
 }
 
-.grass-relax.is-reading .grass-boy-animator {
-    opacity: 0;
-    transform: translateY(2px) scale(.99);
+.grass-relax.reading-complete .current-book-card {
+    animation: current-book-reveal .85s cubic-bezier(.16,.78,.24,1) forwards;
 }
 
-.grass-relax.is-reading .sakura-reading-boy.is-visible {
-    opacity: 1;
-    transform: translateY(2px) scale(1.01);
+@keyframes current-book-reveal {
+    0% { opacity: 0; transform: translate(145%, 18%) rotate(9deg) scale(.28); }
+    35% { opacity: .9; }
+    72% { transform: translate(-4%, -5%) rotate(-8deg) scale(1.06); }
+    100% { opacity: 1; transform: translate(0, 0) rotate(-5deg) scale(1); }
 }
 
 .grass-relax.is-relaxed .grass-boy-animator {
@@ -794,7 +805,7 @@ body.grass-relax-active .headphone-connect {
 
 @media (prefers-reduced-motion: reduce) {
     .grass-boy-animator,
-    .sakura-reading-boy,
+    .current-book-card,
     .current-read,
     .grass-note { transition-duration: .01ms !important; transition-delay: 0s !important; }
 }

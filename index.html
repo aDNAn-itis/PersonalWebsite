@@ -120,13 +120,14 @@
 
         <section id="grass-relax" class="grass-relax" aria-label="Relaxing in a field while listening to music">
             <img id="grass-boy-animator" class="grass-boy-animator" src="assets/grass_relax/f0.png?v=regenerated-about-v23" alt="Boy transitioning into a peaceful resting pose">
-            <img id="sakura-reading-boy-a" class="sakura-reading-boy" src="assets/book_reading/transition-1-fitted.png" alt="Boy lying down and reaching for his current book">
-            <img id="sakura-reading-boy-b" class="sakura-reading-boy" src="assets/book_reading/transition-2-fitted.png" alt="Boy lying down and reading Hercule Poirot’s Christmas">
+            <figure class="current-book-card" aria-label="Current book">
+                <img id="current-book-cover" src="assets/book_reading/hercule-poirots-christmas-cover.jpg" alt="Hercule Poirot’s Christmas by Agatha Christie">
+            </figure>
             <p class="grass-note">sometimes the best thing<br>to build is a little quiet.</p>
             <aside class="current-read" aria-label="Currently reading">
                 <span>currently reading</span>
-                <strong>Hercule Poirot’s Christmas</strong>
-                <em>Agatha Christie</em>
+                <strong id="current-book-title"></strong>
+                <em id="current-book-author"></em>
             </aside>
         </section>
 
@@ -1231,25 +1232,34 @@
         let grassTimers = [];
         let sakuraReadingActive = false;
         let sakuraReadingTimers = [];
-        const sakuraReadingLayers = [
-            document.getElementById('sakura-reading-boy-a'),
-            document.getElementById('sakura-reading-boy-b')
-        ];
+        // Change only this object when the current book changes.
+        const currentBook = {
+            title: 'Hercule Poirot’s Christmas',
+            author: 'Agatha Christie',
+            cover: 'assets/book_reading/hercule-poirots-christmas-cover.jpg'
+        };
+        const currentBookCover = document.getElementById('current-book-cover');
+        currentBookCover.src = currentBook.cover;
+        currentBookCover.alt = `${currentBook.title} by ${currentBook.author}`;
+        document.getElementById('current-book-title').textContent = currentBook.title;
+        document.getElementById('current-book-author').textContent = currentBook.author;
+
         const sakuraReadingFrames = [
             'assets/book_reading/transition-1-fitted.png',
             'assets/book_reading/transition-2-fitted.png',
             'assets/book_reading/reading-boy-fitted.png'
-        ];
-        sakuraReadingFrames.forEach(src => { const image = new Image(); image.src = src; });
+        ].map(src => {
+            const image = new Image();
+            image.src = src;
+            return image;
+        });
 
         function clearSakuraReading() {
             sakuraReadingTimers.forEach(clearTimeout);
             sakuraReadingTimers = [];
             sakuraReadingActive = false;
             grassRelax.classList.remove('is-reading', 'reading-complete');
-            sakuraReadingLayers.forEach(layer => layer.classList.remove('is-visible'));
-            sakuraReadingLayers[0].src = sakuraReadingFrames[0];
-            sakuraReadingLayers[1].src = sakuraReadingFrames[1];
+            if (grassRelaxActive) grassBoyAnimator.src = grassBoyFrames[grassBoyFrameCount - 1].src;
         }
 
         function playSakuraReading() {
@@ -1262,13 +1272,12 @@
             sakuraReadingTimers.push(setTimeout(() => {
                 sakuraReadingActive = true;
                 grassRelax.classList.add('is-reading');
-                sakuraReadingFrames.forEach((src, index) => {
+                sakuraReadingFrames.forEach((frame, index) => {
                     sakuraReadingTimers.push(setTimeout(() => {
-                        const incoming = sakuraReadingLayers[index % 2];
-                        const outgoing = sakuraReadingLayers[(index + 1) % 2];
-                        incoming.src = src;
-                        incoming.classList.add('is-visible');
-                        outgoing.classList.remove('is-visible');
+                        grassBoyAnimator.src = frame.src;
+                        if (index === sakuraReadingFrames.length - 1) {
+                            grassRelax.classList.add('reading-complete');
+                        }
                     }, index * 380));
                 });
             }, 760));
