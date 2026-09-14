@@ -719,6 +719,17 @@ body.headphone-connected #phone {
     cursor: pointer;
 }
 
+/* The relaxed pose exposes more of the books than the default desk hitbox.
+   Keep the whole visible book clickable instead of letting the boy hitbox
+   underneath intercept its right-hand side. */
+body.grass-relax-active .hitbox[data-target="books"] {
+    left: 15.5% !important;
+    top: 52.5% !important;
+    width: 20.5% !important;
+    height: 23.5% !important;
+    z-index: 3;
+}
+
 .grass-boy-animator {
     position: absolute;
     inset: 0;

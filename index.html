@@ -145,7 +145,7 @@
             <div class="hitbox" data-target="bag" style="top: 40.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
             <div class="hitbox" data-target="headphone" style="top: 18.1%; left: 51.2%; width: 13.7%; height: 21.7%;"></div>
             <div class="hitbox" data-target="laptop" style="top: 61.8%; left: 39.4%; width: 13.2%; height: 15.8%;"></div>
-            <div class="hitbox" data-target="cat" style="top: 47.2%; left: 22.3%; width: 14.4%; height: 11.2%;"></div>
+            <div class="hitbox" data-target="cat" data-hover-only style="top: 47.2%; left: 22.3%; width: 14.4%; height: 11.2%;"></div>
             <div class="hitbox" data-target="paper" style="top: 12.4%; left: 19.0%; width: 13.5%; height: 18.1%;"></div>
             
             <!-- Books shifted +6% to match the new image position -->
@@ -340,15 +340,17 @@
                 cycle: 'Go for a bicycle ride', bag: 'Open my bag',
                 books: 'Open the Cosmos book', headphone: 'Connect headphones', cat: 'Meet my cat'
             };
-            box.tabIndex = 0;
-            box.setAttribute('role', 'button');
-            box.setAttribute('aria-label', accessibleNames[box.dataset.target] || box.dataset.target);
-            box.addEventListener('keydown', event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    box.click();
-                }
-            });
+            if (!box.hasAttribute('data-hover-only')) {
+                box.tabIndex = 0;
+                box.setAttribute('role', 'button');
+                box.setAttribute('aria-label', accessibleNames[box.dataset.target] || box.dataset.target);
+                box.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        box.click();
+                    }
+                });
+            }
             // Hover logic
             box.addEventListener('mouseenter', () => {
                 const targetName = box.getAttribute('data-target');
@@ -371,6 +373,8 @@
             
             // Click logic - Cinematic Isolation
             box.addEventListener('click', () => {
+                if (box.hasAttribute('data-hover-only')) return;
+
                 // Hide all panels first
                 document.querySelectorAll('.panel').forEach(panel => {
                     panel.classList.remove('active');
@@ -1133,23 +1137,44 @@
         function playCosmosMagic() {
             cosmosAnimationTimers.forEach(clearTimeout);
             cosmosAnimationTimers = [];
-            cosmosMagic.classList.remove('is-active', 'wind-active', 'is-settled');
-            document.body.classList.remove('cosmos-magic-active');
+            cosmosMagic.classList.remove('wind-active', 'is-settled');
             document.getElementById('books').classList.remove('is-hovered');
+            setCosmosFrame(0);
+            document.body.classList.add('cosmos-magic-active');
+            cosmosMagic.classList.add('is-active');
             void cosmosMagic.offsetWidth;
 
             cosmosSequence.forEach((frame, index) => {
                 const timer = setTimeout(() => {
                     setCosmosFrame(frame);
-                    if (index === 0) {
-                        document.body.classList.add('cosmos-magic-active');
-                        cosmosMagic.classList.add('is-active');
-                    }
                     if (frame >= 3) cosmosMagic.classList.add('wind-active');
                     if (index === cosmosSequence.length - 1) cosmosMagic.classList.add('is-settled');
                 }, cosmosDelays[index]);
                 cosmosAnimationTimers.push(timer);
             });
+        }
+
+        function closeCosmosMagic() {
+            cosmosAnimationTimers.forEach(clearTimeout);
+            cosmosAnimationTimers = [];
+            cosmosMagic.classList.remove('wind-active', 'is-settled');
+
+            // Frames 3–5 are the opening page-flutter and look like a stray
+            // jump when played backwards. Close through the stable poses only.
+            const closingSequence = [6, 2, 1, 0];
+            closingSequence.forEach((frame, index) => {
+                const timer = setTimeout(() => {
+                    setCosmosFrame(frame);
+                }, index * 130);
+                cosmosAnimationTimers.push(timer);
+            });
+
+            // Leave the matching closed animation frame visible. Swapping back
+            // to the separate original-books image causes a one-frame flash.
+            const cleanupTimer = setTimeout(() => {
+                setCosmosFrame(0);
+            }, closingSequence.length * 130);
+            cosmosAnimationTimers.push(cleanupTimer);
         }
 
         // ----------------------------------------------------
@@ -1168,6 +1193,7 @@
             clearTimeout(lapBookTimer);
             if (lapBookActive) {
                 clearLapBooks();
+                closeCosmosMagic();
                 return;
             }
 
