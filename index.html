@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
 
     <div class="scene-container">
 
-        <!-- Ground accumulation stays beneath every illustrated asset. -->
+        <!-- Ground accumulation stays beneath every illustrated asset, exactly like sakura-ground -->
         <canvas class="snow-piles" id="snow-piles" width="1080" height="723" aria-hidden="true"></canvas>
+
+        <!-- Falling snow layers, exactly like sakura-air -->
+        <div class="winter-snow winter-snow-back" aria-hidden="true"></div>
+        <div class="winter-snow winter-snow-front" aria-hidden="true"></div>
 
         <!-- Base interactive images (pointer-events disabled in CSS so they don't block each other) -->
 
@@ -21,7 +25,6 @@
         <img class="interactive-item" id="cycle" src="assets/a/cycle_transparent.png" alt="Bicycle">
         <img class="interactive-item" id="boy" src="assets/a/boy_transparent.png?v=regenerated-about-v5" alt="Boy">
         <section id="winter-boy" class="winter-boy" aria-label="Living in Sapporo, Hokkaido">
-            <div class="winter-snow winter-snow-back" aria-hidden="true"></div>
             <div class="aurora-light" aria-hidden="true">
                 <div class="aurora-curtain aurora-curtain-one"></div>
                 <div class="aurora-curtain aurora-curtain-two"></div>
@@ -37,9 +40,6 @@
             <canvas class="surface-snow" id="laptop-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow" id="paper-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
             <canvas class="surface-snow" id="phone-surface-snow" width="1080" height="723" aria-hidden="true"></canvas>
-            <div class="winter-snow winter-snow-front" aria-hidden="true">
-                <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
             <p class="sapporo-note">currently living in<br><strong>Sapporo, Hokkaido</strong></p>
             <p class="sapporo-note intro-note">hey, it’s me, Adnan.<br>mostly in a terminal,<br>building things.<br>curious about code, physics,<br>and the universe beyond<br>the screen.<br>when I’m not building,<br>I try to live like a human.<br><br>the things around me<br>tell the rest.<br>click around.</p>
         </section>
@@ -109,25 +109,6 @@
         <!-- In-place Cosmos book magic; the original two-book layer remains untouched below it. -->
         <section id="cosmos-magic" class="cosmos-magic" aria-label="Cosmos book opening with starlight">
             <img id="cosmos-animator" class="cosmos-animator" src="assets/cosmos_magic/f0.png" alt="Thin Cosmos paperback opening">
-            <figure class="sagan-portrait">
-                <svg viewBox="0 0 180 230" role="img" aria-labelledby="sagan-line-title">
-                    <title id="sagan-line-title">Carl Sagan reading — a hand-drawn line portrait</title>
-                    <g fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round">
-                        <!-- Swept, side-parted hair with a high forehead. -->
-                        <path pathLength="1" d="M47 85 C32 77 28 61 33 43 C34 26 48 16 65 17 C78 4 103 7 117 17 C137 20 148 36 145 53 C146 66 139 78 135 82 M46 77 C43 66 42 58 47 49 C55 38 68 34 73 21 C82 36 106 35 126 43 C135 48 136 63 132 73"/>
-                        <path pathLength="1" d="M38 57 Q36 31 64 25 M43 62 Q45 43 62 36 M77 18 Q101 16 124 32 M79 25 Q104 29 132 40 M35 65 Q36 76 43 79"/>
-                        <!-- Long face and prominent nose, tilted toward the book. -->
-                        <path pathLength="1" d="M48 66 C39 60 39 76 46 81 L52 82 C55 99 64 113 78 121 Q94 130 107 116 C122 107 130 92 132 72 M47 70 L48 76 M57 58 Q67 50 80 57 M97 59 Q108 51 119 57 M61 66 Q70 70 79 65 M100 66 Q109 70 118 63 M86 62 C86 73 83 79 90 85 L99 84 Q100 89 94 90"/>
-                        <path pathLength="1" d="M68 92 Q88 104 114 88 C110 103 96 113 86 111 Q75 108 68 92 M73 96 Q91 106 110 94 M70 85 Q64 87 64 96 M114 82 Q121 85 118 94 M62 74 L67 77 M111 76 L116 73 M87 117 Q96 121 102 115"/>
-                        <!-- Turtleneck and open jacket. -->
-                        <path pathLength="1" d="M65 110 L61 131 Q83 152 110 130 L110 114 M64 123 Q86 142 108 125 M61 132 L48 126 L25 141 L15 188 M111 132 L122 129 L148 145 L166 195 M49 128 L42 148 L55 150 L45 164 M123 132 L134 150 L122 155 L136 168"/>
-                        <!-- Open book and the hands resting around its edges. -->
-                        <path pathLength="1" d="M34 161 Q60 159 90 175 Q118 159 149 162 L141 205 Q115 202 89 219 Q64 205 38 205 Z M90 175 L89 219 M38 155 Q64 157 90 171 Q116 157 145 157 M48 174 Q66 175 80 183 M48 181 Q65 182 80 190 M101 183 Q119 174 136 176 M101 190 Q119 181 135 183"/>
-                        <path pathLength="1" d="M18 183 Q27 173 37 178 L48 184 Q50 189 43 190 L29 187 M24 192 L43 195 Q46 200 39 201 L23 198 M22 202 Q25 212 40 209 M164 187 Q155 177 144 181 L133 188 Q133 193 140 192 L154 189 M158 195 L139 198 Q136 204 143 203 L159 201 M159 204 Q153 215 141 209"/>
-                    </g>
-                </svg>
-                <figcaption>Carl Sagan</figcaption>
-            </figure>
             <div class="cosmos-wind" aria-hidden="true">
                 <i></i><i></i><i></i><i></i>
             </div>
@@ -609,7 +590,7 @@
             }
             layer.querySelectorAll('i').forEach(flake => {
                 const depth = minDepth + Math.random() * (maxDepth - minDepth);
-                flake.style.setProperty('--snow-x', `${Math.random() * 100}%`);
+                flake.style.setProperty('--snow-x', `${Math.random() * 102 - 1}%`);
                 flake.style.setProperty('--snow-size', `${1.2 + depth * 5.3}px`);
                 flake.style.setProperty('--snow-speed', `${3.4 + (1 - depth) * 4.2}s`);
                 flake.style.setProperty('--snow-delay', `${-Math.random() * 8}s`);
@@ -621,8 +602,8 @@
                 flake.style.setProperty('--snow-blur', `${(1 - depth) * .7}px`);
             });
         }
-        populateSnowLayer(document.querySelector('.winter-snow-back'), 28, .06, .38);
-        populateSnowLayer(document.querySelector('.winter-snow-front'), 22, .42, 1);
+        populateSnowLayer(document.querySelector('.winter-snow-back'), 80, .06, .38);
+        populateSnowLayer(document.querySelector('.winter-snow-front'), 60, .42, 1);
 
         // Top-down accumulation is physically layered beneath the artwork, so
         // transparent asset edges remain exact without a synthetic cutout mask.
@@ -652,7 +633,14 @@
         const windDrifts = [
             { x: 155, y: 190, rx: 165, ry: 45 },
             { x: 870, y: 250, rx: 210, ry: 55 },
-            { x: 600, y: 585, rx: 260, ry: 82 }
+            { x: 600, y: 585, rx: 260, ry: 82 },
+            // Corner and perimeter drifts so snow settles across the entire floor
+            { x: 90, y: 640, rx: 170, ry: 75 },
+            { x: 990, y: 640, rx: 170, ry: 75 },
+            { x: 80, y: 90, rx: 130, ry: 50 },
+            { x: 1000, y: 90, rx: 130, ry: 50 },
+            { x: 60, y: 360, rx: 120, ry: 65 },
+            { x: 1020, y: 360, rx: 120, ry: 65 }
         ];
         const settlingSnowParticles = [];
         let settledParticleCount = 0;
@@ -807,17 +795,17 @@
             let y;
             let coverageX;
             let coverageY;
-            if (Math.random() < .2) {
+            if (Math.random() < .35) {
                 const drift = windDrifts[Math.floor(Math.random() * windDrifts.length)];
                 x = drift.x + (Math.random() - .5) * drift.rx;
                 y = drift.y + (Math.random() - .5) * drift.ry;
                 coverageX = drift.rx * (.48 + Math.random() * .3);
                 coverageY = drift.ry * (.45 + Math.random() * .28);
             } else {
-                x = Math.random() * 1080;
-                y = Math.random() * 723;
-                coverageX = 48 + Math.random() * 78;
-                coverageY = 34 + Math.random() * 58;
+                x = -30 + Math.random() * 1140;
+                y = -15 + Math.random() * 750;
+                coverageX = 52 + Math.random() * 80;
+                coverageY = 36 + Math.random() * 60;
             }
 
             const depth = .45 + y / 723 * .8;
@@ -1007,7 +995,7 @@
             if (time - snowPileLastDrop > 85) {
                 // Several visible flakes reach the ground during each interval.
                 // Depositing them independently avoids a synchronized flat edge.
-                const landedFlakes = 4 + Math.floor(Math.random() * 3);
+                const landedFlakes = 6 + Math.floor(Math.random() * 4);
                 for (let i = 0; i < landedFlakes; i++) dropSettledSnow(time);
                 snowPileLastDrop = time;
             }
