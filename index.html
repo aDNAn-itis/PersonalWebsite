@@ -120,7 +120,14 @@
 
         <section id="grass-relax" class="grass-relax" aria-label="Relaxing in a field while listening to music">
             <img id="grass-boy-animator" class="grass-boy-animator" src="assets/grass_relax/f0.png?v=regenerated-about-v23" alt="Boy transitioning into a peaceful resting pose">
+            <img id="sakura-reading-boy-a" class="sakura-reading-boy" src="assets/book_reading/transition-1-fitted.png" alt="Boy lying down and reaching for his current book">
+            <img id="sakura-reading-boy-b" class="sakura-reading-boy" src="assets/book_reading/transition-2-fitted.png" alt="Boy lying down and reading Hercule Poirot’s Christmas">
             <p class="grass-note">sometimes the best thing<br>to build is a little quiet.</p>
+            <aside class="current-read" aria-label="Currently reading">
+                <span>currently reading</span>
+                <strong>Hercule Poirot’s Christmas</strong>
+                <em>Agatha Christie</em>
+            </aside>
         </section>
 
         <!-- Invisible Hitboxes for accurate hovering -->
@@ -353,6 +360,12 @@
                 
                 const targetName = box.getAttribute('data-target');
                 const returningFromHeadphoneBoy = grassRelaxActive && targetName === 'boy';
+                const readingInSakura = grassRelaxActive && targetName === 'books';
+
+                if (readingInSakura) {
+                    playSakuraReading();
+                    return;
+                }
 
                 resetActiveDeskAnimations(targetName);
 
@@ -1216,8 +1229,53 @@
         }
         let grassRelaxActive = false;
         let grassTimers = [];
+        let sakuraReadingActive = false;
+        let sakuraReadingTimers = [];
+        const sakuraReadingLayers = [
+            document.getElementById('sakura-reading-boy-a'),
+            document.getElementById('sakura-reading-boy-b')
+        ];
+        const sakuraReadingFrames = [
+            'assets/book_reading/transition-1-fitted.png',
+            'assets/book_reading/transition-2-fitted.png',
+            'assets/book_reading/reading-boy-fitted.png'
+        ];
+        sakuraReadingFrames.forEach(src => { const image = new Image(); image.src = src; });
+
+        function clearSakuraReading() {
+            sakuraReadingTimers.forEach(clearTimeout);
+            sakuraReadingTimers = [];
+            sakuraReadingActive = false;
+            grassRelax.classList.remove('is-reading', 'reading-complete');
+            sakuraReadingLayers.forEach(layer => layer.classList.remove('is-visible'));
+            sakuraReadingLayers[0].src = sakuraReadingFrames[0];
+            sakuraReadingLayers[1].src = sakuraReadingFrames[1];
+        }
+
+        function playSakuraReading() {
+            if (sakuraReadingActive) {
+                clearSakuraReading();
+                return;
+            }
+
+            playCosmosMagic();
+            sakuraReadingTimers.push(setTimeout(() => {
+                sakuraReadingActive = true;
+                grassRelax.classList.add('is-reading');
+                sakuraReadingFrames.forEach((src, index) => {
+                    sakuraReadingTimers.push(setTimeout(() => {
+                        const incoming = sakuraReadingLayers[index % 2];
+                        const outgoing = sakuraReadingLayers[(index + 1) % 2];
+                        incoming.src = src;
+                        incoming.classList.add('is-visible');
+                        outgoing.classList.remove('is-visible');
+                    }, index * 380));
+                });
+            }, 760));
+        }
 
         function clearGrassRelax() {
+            clearSakuraReading();
             window.sakura.stop();
             grassTimers.forEach(clearTimeout);
             grassTimers = [];
