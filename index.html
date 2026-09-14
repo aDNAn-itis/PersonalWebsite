@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -1237,7 +1240,7 @@
         const currentBook = {
             title: 'Hercule Poirot’s Christmas',
             author: 'Agatha Christie',
-            cover: 'assets/book_reading/hercule-poirots-christmas-cover.jpg'
+            cover: 'assets/book_reading/hercule-poirots-christmas-cover.jpg?v=2'
         };
         const currentBookCover = document.getElementById('current-book-cover');
         currentBookCover.src = currentBook.cover;
@@ -1246,16 +1249,16 @@
         document.getElementById('current-book-author').textContent = currentBook.author;
 
         const sakuraReadingFrames = [
-            'assets/book_reading/transition-1-fitted.png',
-            'assets/book_reading/transition-2-fitted.png',
-            'assets/book_reading/reading-boy-fitted.png'
+            'assets/book_reading/transition-1-fitted.png?v=2',
+            'assets/book_reading/transition-2-fitted.png?v=2',
+            'assets/book_reading/reading-boy-fitted.png?v=2'
         ].map(src => {
             const image = new Image();
             image.src = src;
             return image;
         });
         const sakuraClosedBookFrame = new Image();
-        sakuraClosedBookFrame.src = 'assets/book_reading/reading-boy-slot-fitted.png';
+        sakuraClosedBookFrame.src = 'assets/book_reading/reading-boy-slot-fitted.png?v=2';
 
         function clearSakuraReading() {
             sakuraReadingTimers.forEach(clearTimeout);
