@@ -27,6 +27,7 @@ for source_name, output_name in (
     ("transition-1-cutout.png", "transition-1-fitted.png"),
     ("transition-2-cutout.png", "transition-2-fitted.png"),
     ("reading-boy-cutout.png", "reading-boy-fitted.png"),
+    ("reading-boy-slot-green.png", "reading-boy-slot-fitted.png"),
 ):
     source = remove_green_spill(Image.open(HERE / source_name))
     source = source.crop(source.getchannel("A").getbbox())

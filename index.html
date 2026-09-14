@@ -120,7 +120,7 @@
 
         <section id="grass-relax" class="grass-relax" aria-label="Relaxing in a field while listening to music">
             <img id="grass-boy-animator" class="grass-boy-animator" src="assets/grass_relax/f0.png?v=regenerated-about-v23" alt="Boy transitioning into a peaceful resting pose">
-            <figure class="current-book-card" aria-label="Current book">
+            <figure class="current-book-card" aria-label="Current book cover">
                 <img id="current-book-cover" src="assets/book_reading/hercule-poirots-christmas-cover.jpg" alt="Hercule Poirot’s Christmas by Agatha Christie">
             </figure>
             <p class="grass-note">sometimes the best thing<br>to build is a little quiet.</p>
@@ -149,6 +149,7 @@
             
             <!-- Smallest objects last to ensure they aren't covered -->
             <div class="hitbox" data-target="phone" style="top: 45.4%; left: 53.3%; width: 7.1%; height: 9.8%;"></div>
+            <button id="current-book-pickup" class="current-book-pickup" type="button" aria-label="Pick up Hercule Poirot’s Christmas"></button>
         </div>
         
 
@@ -1253,18 +1254,19 @@
             image.src = src;
             return image;
         });
+        const sakuraClosedBookFrame = new Image();
+        sakuraClosedBookFrame.src = 'assets/book_reading/reading-boy-slot-fitted.png';
 
         function clearSakuraReading() {
             sakuraReadingTimers.forEach(clearTimeout);
             sakuraReadingTimers = [];
             sakuraReadingActive = false;
-            grassRelax.classList.remove('is-reading', 'reading-complete');
+            grassRelax.classList.remove('is-reading', 'book-ready', 'is-picking-book', 'reading-complete');
             if (grassRelaxActive) grassBoyAnimator.src = grassBoyFrames[grassBoyFrameCount - 1].src;
         }
 
         function playSakuraReading() {
             if (sakuraReadingActive) {
-                clearSakuraReading();
                 return;
             }
 
@@ -1276,12 +1278,27 @@
                     sakuraReadingTimers.push(setTimeout(() => {
                         grassBoyAnimator.src = frame.src;
                         if (index === sakuraReadingFrames.length - 1) {
-                            grassRelax.classList.add('reading-complete');
+                            grassRelax.classList.add('book-ready');
                         }
                     }, index * 380));
                 });
             }, 760));
         }
+
+        document.getElementById('current-book-pickup').addEventListener('click', event => {
+            event.stopPropagation();
+            if (!sakuraReadingActive || !grassRelax.classList.contains('book-ready') || grassRelax.classList.contains('reading-complete')) return;
+
+            grassRelax.classList.add('is-picking-book');
+            sakuraReadingTimers.push(setTimeout(() => {
+                grassBoyAnimator.src = sakuraReadingFrames[0].src;
+            }, 240));
+            sakuraReadingTimers.push(setTimeout(() => {
+                grassBoyAnimator.src = sakuraClosedBookFrame.src;
+                grassRelax.classList.remove('is-picking-book');
+                grassRelax.classList.add('reading-complete');
+            }, 560));
+        });
 
         function clearGrassRelax() {
             clearSakuraReading();
