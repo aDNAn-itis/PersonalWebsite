@@ -1095,6 +1095,7 @@
             winterTimers.forEach(clearTimeout);
             winterTimers = [];
             const sequence = winterActive ? [5, 4, 3, 2, 1, 0] : [0, 1, 2, 3, 4, 5, 6];
+            winterBoy.classList.remove('is-handing-off');
             winterBoy.classList.add('is-active');
             document.body.classList.add('winter-boy-active');
             if (!winterActive) startSnowPiles();
@@ -1106,9 +1107,15 @@
                         winterActive = !winterActive;
                         winterBoy.classList.toggle('is-settled', winterActive);
                         if (!winterActive) {
-                            clearSnowPiles();
-                            winterBoy.classList.remove('is-active');
+                            // Crossfade frame 0 over the normal boy before
+                            // removing the winter layer. An immediate removal
+                            // here produces a visible one-frame flash.
                             document.body.classList.remove('winter-boy-active');
+                            winterBoy.classList.add('is-handing-off');
+                            winterTimers.push(setTimeout(() => {
+                                clearSnowPiles();
+                                winterBoy.classList.remove('is-active', 'is-handing-off');
+                            }, 190));
                         }
                     }
                 }, index * 120));
@@ -1141,6 +1148,7 @@
             document.getElementById('books').classList.remove('is-hovered');
             setCosmosFrame(0);
             document.body.classList.add('cosmos-magic-active');
+            document.body.classList.add('cosmos-book-open');
             cosmosMagic.classList.add('is-active');
             void cosmosMagic.offsetWidth;
 
@@ -1173,6 +1181,7 @@
             // to the separate original-books image causes a one-frame flash.
             const cleanupTimer = setTimeout(() => {
                 setCosmosFrame(0);
+                document.body.classList.remove('cosmos-book-open');
             }, closingSequence.length * 130);
             cosmosAnimationTimers.push(cleanupTimer);
         }
@@ -1411,6 +1420,7 @@
                 cosmosAnimationTimers = [];
                 cosmosMagic.classList.remove('is-active', 'wind-active', 'is-settled');
                 document.body.classList.remove('cosmos-magic-active');
+                document.body.classList.remove('cosmos-book-open');
                 document.getElementById('books').classList.remove('is-hovered');
                 setCosmosFrame(0);
             }
@@ -1430,7 +1440,7 @@
                 winterTimers = [];
                 winterActive = false;
                 clearSnowPiles();
-                winterBoy.classList.remove('is-active', 'is-settled');
+                winterBoy.classList.remove('is-active', 'is-settled', 'is-handing-off');
                 document.body.classList.remove('winter-boy-active');
                 winterBoyAnimator.src = winterFrames[0].src;
                 document.getElementById('boy').classList.remove('is-hovered');

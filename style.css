@@ -192,9 +192,11 @@ body.lap-book-active:has(.winter-boy.is-hovered) .lap-book-cover {
     z-index: 70;
     opacity: 0;
     pointer-events: none;
+    transition: opacity .18s ease-out;
 }
 
 .winter-boy.is-active { opacity: 1; }
+.winter-boy.is-active.is-handing-off { opacity: 0; }
 body.winter-boy-active #boy { opacity: 0 !important; }
 
 .winter-boy > img {
@@ -358,6 +360,12 @@ body.winter-boy-active .winter-snow,
 .surface-snow.is-hovered { transform: translateY(-8px) scale(1.03); }
 .bag-surface-snow { top: -3%; bottom: auto; }
 .books-surface-snow { left: 6%; right: auto; }
+
+/* This mask follows the original closed books. Once Cosmos opens, that
+   silhouette no longer matches, so suppress only its stale snow outline. */
+body.cosmos-book-open .books-surface-snow {
+    opacity: 0 !important;
+}
 
 .snow-piles {
     position: fixed;
