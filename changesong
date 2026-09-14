@@ -1,0 +1,118 @@
+#!/usr/bin/env python3
+import sys
+import re
+import json
+import subprocess
+from pathlib import Path
+from datetime import datetime, timezone
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+SONG_JS = SCRIPT_DIR / "song.js"
+GIST_ID = "75717a69797a2327cefec3e8c68906eb"
+
+YOUTUBE_REGEXES = [
+    r"(?:https?:\/\/)?(?:www\.|m\.|music\.)?youtube\.com\/watch\?(?:.*&)?v=([a-zA-Z0-9_-]{11})",
+    r"(?:https?:\/\/)?youtu\.be\/([a-zA-Z0-9_-]{11})",
+    r"(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})",
+    r"(?:https?:\/\/)?(?:www\.|m\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})",
+    r"^([a-zA-Z0-9_-]{11})$"
+]
+
+AUDIO_EXTENSIONS = (".mp3", ".ogg", ".wav", ".m4a", ".aac", ".flac")
+
+def parse_link(link: str):
+    link = link.strip().strip("'").strip('"')
+    
+    # Check for direct audio file
+    lower = link.lower().split("?")[0]
+    if lower.endswith(AUDIO_EXTENSIONS):
+        return {
+            "type": "audio",
+            "url": link,
+            "id": Path(lower).name
+        }
+    
+    # Check for YouTube
+    for pattern in YOUTUBE_REGEXES:
+        match = re.search(pattern, link)
+        if match:
+            vid_id = match.group(1)
+            embed_url = f"https://www.youtube-nocookie.com/embed/{vid_id}?autoplay=1&loop=1&playlist={vid_id}"
+            return {
+                "type": "youtube",
+                "id": vid_id,
+                "url": embed_url
+            }
+            
+    # Generic fallback
+    return {
+        "type": "embed",
+        "id": "custom",
+        "url": link
+    }
+
+def update_gist(json_str: str):
+    try:
+        cmd = [
+            "gh", "api", "-X", "PATCH", f"/gists/{GIST_ID}",
+            "-F", f"files[song.json][content]={json_str}"
+        ]
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return True, None
+    except subprocess.CalledProcessError as e:
+        return False, e.stderr or str(e)
+    except FileNotFoundError:
+        return False, "gh CLI not found"
+
+def update_song(link: str):
+    song_info = parse_link(link)
+    song_info["updatedAt"] = datetime.now(timezone.utc).isoformat()
+    json_data = json.dumps(song_info, indent=4)
+    
+    # 1. Update local song.js for immediate offline/local preview
+    js_content = f"window.CURRENT_SONG = {json_data};\n"
+    SONG_JS.write_text(js_content, encoding="utf-8")
+    
+    print("\n🎵  Local song updated:")
+    print(f"   • Type: {song_info['type']}")
+    if "id" in song_info:
+        print(f"   • ID: {song_info['id']}")
+    print(f"   • URL: {song_info['url']}")
+    
+    # 2. Update cloud Gist so the live website instantly updates with 0 git commits
+    print("\n☁️  Syncing live website via GitHub Gist...")
+    success, err = update_gist(json_data)
+    if success:
+        print("✅ Live site updated instantly! (0 git commits added to your repo)")
+        print(f"   • Gist: https://gist.github.com/aDNAn-itis/{GIST_ID}")
+    else:
+        print(f"⚠️  Could not update Gist: {err}")
+
+def show_current_song():
+    if not SONG_JS.exists():
+        print("No song.js found. Run `changesong <link>` to set one.")
+        return
+    content = SONG_JS.read_text(encoding="utf-8")
+    match = re.search(r"window\.CURRENT_SONG\s*=\s*(\{.*?\});", content, re.DOTALL)
+    if match:
+        data = json.loads(match.group(1))
+        print("\n🎧 Current Song:")
+        print(f"   • Type: {data.get('type')}")
+        print(f"   • ID: {data.get('id')}")
+        print(f"   • URL: {data.get('url')}")
+        print(f"   • Last updated: {data.get('updatedAt')}")
+        print(f"   • Live Gist: https://gist.github.com/aDNAn-itis/{GIST_ID}")
+    else:
+        print("Could not read current song info.")
+    print("\nUsage: changesong <link>")
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help"):
+        show_current_song()
+        return
+
+    update_song(args[0])
+
+if __name__ == "__main__":
+    main()

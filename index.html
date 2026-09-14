@@ -249,6 +249,21 @@
         </div>
     </div>
     
+    <script src="song.js"></script>
+    <script>
+        // Check GitHub Gist for daily updated song (0-commit cloud updates)
+        (function() {
+            const GIST_ID = '75717a69797a2327cefec3e8c68906eb';
+            fetch('https://api.github.com/gists/' + GIST_ID)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (data?.files?.['song.json']?.content) {
+                        window.CURRENT_SONG = JSON.parse(data.files['song.json'].content);
+                    }
+                })
+                .catch(() => {});
+        })();
+    </script>
     <script src="sakura.js?v=2"></script>
     <script>
         // Keep the layered artwork hidden until every initial image has loaded.
@@ -1113,17 +1128,39 @@
 
         function playHeadphoneMusic() {
             if (document.getElementById('headphone-music')) return;
-            const player = document.createElement('iframe');
-            player.id = 'headphone-music';
-            player.className = 'headphone-music';
-            player.title = 'Music playing in the headphone scene';
-            player.allow = 'autoplay; encrypted-media';
-            player.src = 'https://www.youtube-nocookie.com/embed/wok0OoivstE?autoplay=1&loop=1&playlist=wok0OoivstE';
-            document.body.appendChild(player);
+            const song = window.CURRENT_SONG || {
+                type: 'youtube',
+                url: 'https://www.youtube-nocookie.com/embed/wok0OoivstE?autoplay=1&loop=1&playlist=wok0OoivstE'
+            };
+
+            if (song.type === 'audio') {
+                const audio = document.createElement('audio');
+                audio.id = 'headphone-music';
+                audio.className = 'headphone-music';
+                audio.autoplay = true;
+                audio.loop = true;
+                audio.src = song.url;
+                document.body.appendChild(audio);
+                audio.play().catch(() => {});
+            } else {
+                const player = document.createElement('iframe');
+                player.id = 'headphone-music';
+                player.className = 'headphone-music';
+                player.title = 'Music playing in the headphone scene';
+                player.allow = 'autoplay; encrypted-media';
+                player.src = song.url;
+                document.body.appendChild(player);
+            }
         }
 
         function stopHeadphoneMusic() {
-            document.getElementById('headphone-music')?.remove();
+            const el = document.getElementById('headphone-music');
+            if (el) {
+                if (el.tagName === 'AUDIO') {
+                    el.pause();
+                }
+                el.remove();
+            }
         }
 
         function playHeadphoneConnection() {
