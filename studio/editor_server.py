@@ -99,6 +99,8 @@ class EditorHandler(SimpleHTTPRequestHandler):
         else:
             super().do_GET()
 
-os.chdir('/home/adnan/Desktop/seji_web/interactive-portfolio')
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if os.path.exists(base_dir):
+    os.chdir(base_dir)
 print("Starting Studio Editor Server on port 8000...")
 HTTPServer(('', 8000), EditorHandler).serve_forever()

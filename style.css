@@ -51,8 +51,7 @@ body {
 }
 
 /* Hold one stable canvas until the layered scene is fully ready. */
-body.page-loading .scene-container,
-body.page-loading .background-picker {
+body.page-loading .scene-container {
     opacity: 0;
 }
 
@@ -92,41 +91,6 @@ body.winter-boy-active .interactive-item,
 body.winter-boy-active .interactive-item.is-hovered,
 body.winter-boy-active .surface-snow { filter: none; }
 
-.background-picker {
-    position: fixed;
-    bottom: max(16px, env(safe-area-inset-bottom));
-    right: 18px;
-    z-index: 100;
-    display: grid;
-    gap: 4px;
-    max-width: calc(100vw - 36px);
-    padding: 10px 14px;
-    color: #57463c;
-    background: rgba(255, 252, 245, .94);
-    border: 1px solid rgba(87, 70, 60, .2);
-    border-radius: 10px;
-    font: 18px/1.3 'Patrick Hand', cursive;
-    transition: opacity .28s ease-out;
-}
-.background-picker select {
-    font: inherit;
-    color: inherit;
-    background: transparent;
-    border: 0;
-    min-height: 36px;
-    cursor: pointer;
-}
-.background-picker select:focus-visible { outline: 2px solid #7a3030; outline-offset: 3px; }
-.background-status:empty { display: none; }
-.background-status { font-size: 15px; }
-body:has(.modal-active) .background-picker,
-body.bike-active .background-picker,
-body.about-active .background-picker,
-body.table-active .background-picker,
-body.laptop-opening .background-picker,
-body.bookshelf-active .background-picker,
-body.grass-relax-active .background-picker { display: none; }
-
 .interactive-item {
     position: absolute;
     z-index: 1;
@@ -155,6 +119,119 @@ body.grass-relax-active .background-picker { display: none; }
     z-index: 10;
 }
 
+/* ============================================
+   PHONE SOCIAL LINKS — FLOOR TO UPPER-RIGHT
+   ============================================ */
+#phone,
+#phone-surface-snow {
+    transition: opacity .5s ease,
+        transform .9s cubic-bezier(.2,.78,.2,1),
+        filter .9s ease;
+}
+
+body.phone-socials-active #phone,
+body.phone-socials-active #phone-surface-snow {
+    transform-origin: 57% 50%;
+    transform: translate(29%, -25%) rotate(-12deg) !important;
+}
+
+body.phone-socials-active #phone {
+    opacity: 1 !important;
+    z-index: 85;
+    filter: brightness(1.05) drop-shadow(12px 18px 18px rgba(36, 28, 26, .28));
+}
+
+body.phone-socials-active #phone-surface-snow {
+    z-index: 86;
+}
+
+body.phone-socials-active.winter-boy-active .winter-boy {
+    z-index: 86;
+}
+
+body.phone-socials-active #phone.is-hovered,
+body.phone-socials-active #phone-surface-snow.is-hovered {
+    transform: translate(29%, -25%) rotate(-12deg) scale(1.02) !important;
+}
+
+body.phone-socials-active .headphone-connect {
+    opacity: 0 !important;
+}
+
+.phone-social-links {
+    position: absolute;
+    z-index: 90;
+    left: 90%;
+    top: 20.5%;
+    display: grid;
+    gap: .18em;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(12px) rotate(-2deg);
+    transition: opacity .45s ease .62s, transform .55s cubic-bezier(.2,.8,.2,1) .62s;
+}
+
+.phone-social-links span,
+.phone-social-links a {
+    font-family: 'Patrick Hand', cursive;
+    font-weight: 400;
+    font-size: clamp(10px, 1.3cqw, 16px);
+}
+
+.phone-social-links span {
+    margin-bottom: .2em;
+    color: #7d6f68;
+}
+
+.phone-social-links a {
+    width: max-content;
+    color: #67443f;
+    line-height: 1.05;
+    text-decoration: none;
+    opacity: 0;
+    transform: translateX(-9px);
+    transition: color .2s ease, opacity .35s ease, transform .35s ease;
+}
+
+.phone-social-links a:nth-of-type(1) { transition-delay: 0s, .78s, .78s; }
+.phone-social-links a:nth-of-type(2) { transition-delay: 0s, .9s, .9s; }
+.phone-social-links a:nth-of-type(3) { transition-delay: 0s, 1.02s, 1.02s; }
+
+body.phone-socials-active .phone-social-links {
+    pointer-events: auto;
+    opacity: 1;
+    transform: translateY(0) rotate(-2deg);
+}
+
+body.phone-socials-active .phone-social-links a {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.phone-social-links a:hover,
+.phone-social-links a:focus-visible {
+    color: #a84f48;
+    outline: none;
+    transform: translateX(4px);
+}
+
+/* Follow the phone's visible destination so it can be clicked again to close. */
+body.phone-socials-active .hitbox[data-target="phone"] {
+    left: 82.5% !important;
+    top: 18% !important;
+    width: 8.5% !important;
+    height: 17% !important;
+    z-index: 92 !important;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+    body.phone-socials-active #phone,
+    body.phone-socials-active #phone-surface-snow { transition-duration: .01ms; }
+    .phone-social-links,
+    .phone-social-links a { transition-duration: .01ms; transition-delay: 0s; }
+}
+
 /* One reusable current-book asset placed over the shared seated lap area. */
 .lap-book-cover {
     position: absolute;
@@ -177,7 +254,8 @@ body.lap-book-active .lap-book-cover {
 }
 
 body.lap-book-active:has(#boy.is-hovered) .lap-book-cover,
-body.lap-book-active:has(.winter-boy.is-hovered) .lap-book-cover {
+body.lap-book-active:has(.winter-boy.is-hovered) .lap-book-cover,
+body.lap-book-active.winter-boy-active .lap-book-cover {
     transform: translateY(-8px) rotate(81deg) scale(1.03);
 }
 
@@ -213,9 +291,17 @@ body.winter-boy-active #boy { opacity: 0 !important; }
     transition: transform .35s ease, filter .35s ease;
 }
 
+body.winter-boy-active .winter-boy #winter-boy-animator,
+body.winter-boy-active #boy-surface-snow,
 .winter-boy.is-hovered #winter-boy-animator {
     transform: translateY(-8px) scale(1.03);
     filter: brightness(1.08) drop-shadow(0 18px 22px rgba(0,0,0,.25));
+}
+
+.winter-boy.is-handing-off #winter-boy-animator,
+.winter-boy.is-handing-off #boy-surface-snow {
+    transform: translateY(0) scale(1);
+    filter: none;
 }
 
 .sapporo-note {
@@ -248,7 +334,7 @@ body.winter-boy-active #boy { opacity: 0 !important; }
 
 .sapporo-note.intro-note {
     top: 6%;
-    left: 71%;
+    left: 68%;
     width: 27%;
     white-space: normal;
     font-size: clamp(8px, 1.35cqw, 16px);
@@ -583,6 +669,48 @@ body.table-active .laptop-scene-item {
                 transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Suppress all winter scene elements and snow when table or full-screen modes are open */
+body.table-active .winter-boy,
+body.table-active .surface-snow,
+body.table-active .sapporo-note,
+body.table-active .snow-piles,
+body.table-active .winter-snow,
+body.table-active .aurora-light,
+body.laptop-opening .winter-boy,
+body.laptop-opening .surface-snow,
+body.laptop-opening .sapporo-note,
+body.laptop-opening .snow-piles,
+body.laptop-opening .winter-snow,
+body.laptop-opening .aurora-light,
+body.bike-active .winter-boy,
+body.bike-active .surface-snow,
+body.bike-active .sapporo-note,
+body.bike-active .snow-piles,
+body.bike-active .winter-snow,
+body.bike-active .aurora-light,
+body.about-active .winter-boy,
+body.about-active .surface-snow,
+body.about-active .sapporo-note,
+body.about-active .snow-piles,
+body.about-active .winter-snow,
+body.about-active .aurora-light,
+body.table-active .grass-relax,
+body.table-active .sakura-layer,
+body.table-active .headphone-connect,
+body.laptop-opening .grass-relax,
+body.laptop-opening .sakura-layer,
+body.laptop-opening .headphone-connect,
+body.bike-active .grass-relax,
+body.bike-active .sakura-layer,
+body.bike-active .headphone-connect,
+body.about-active .grass-relax,
+body.about-active .sakura-layer,
+body.about-active .headphone-connect {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
 /* ============================================
    FAIRY LIGHTS ASSET
    ============================================ */
@@ -683,8 +811,11 @@ body.cosmos-magic-active #books {
     opacity: 1;
 }
 
-body.headphone-connected #headphone,
-body.headphone-connected #phone {
+body.headphone-connected #headphone {
+    opacity: 0 !important;
+}
+
+body.headphone-connected:not(.grass-relax-active):not(.phone-socials-active) #phone {
     opacity: 0 !important;
 }
 
@@ -733,7 +864,7 @@ body.headphone-connected #phone {
 body.grass-relax-active .hitbox[data-target="books"] {
     left: 15.5% !important;
     top: 52.5% !important;
-    width: 20.5% !important;
+    width: 7.9% !important;
     height: 23.5% !important;
     z-index: 3;
 }
@@ -866,18 +997,53 @@ body:has(.grass-relax.book-ready:not(.is-picking-book):not(.reading-complete)) .
     transform: translateY(0);
 }
 
-body.grass-relax-active #boy {
+body.grass-relax-active #boy,
+body.from-grass-relax #boy,
+body.laptop-opening #boy {
     opacity: 0 !important;
 }
 
 /* Clear the relaxed boy's feet without changing the normal desk layout. */
-body.grass-relax-active #laptop {
+body.grass-relax-active #laptop,
+body.from-grass-relax #laptop {
     transform: translateX(-16%);
+}
+
+body.grass-relax-active #laptop.is-hovered {
+    transform: translateX(-16%) translateY(-8px) scale(1.03);
+}
+
+body.grass-relax-active .hitbox[data-target="laptop"] {
+    left: 23.4% !important;
+    top: 61.8% !important;
+    width: 13.2% !important;
+    height: 15.8% !important;
+    z-index: 25 !important;
+}
+
+body.from-grass-relax:not(.table-active) .laptop-scene-item,
+body.grass-relax-active:not(.table-active) .laptop-scene-item {
+    left: 23.4%;
 }
 
 /* Synchronize phone shifting above and right at the exact same time as laptop */
 body.grass-relax-active .headphone-connect {
+    opacity: 0 !important;
     transform: translate(calc(100% * 35 / 1080), calc(100% * -50 / 723));
+}
+
+body.grass-relax-active #phone {
+    opacity: 1 !important;
+    transform: translate(calc(100% * 35 / 1080), calc(100% * -50 / 723));
+}
+
+body.grass-relax-active #phone.is-hovered {
+    transform: translate(calc(100% * 35 / 1080), calc(100% * -50 / 723)) translateY(-8px) scale(1.03);
+}
+
+body.grass-relax-active:not(.phone-socials-active) .hitbox[data-target="phone"] {
+    top: 38.5% !important;
+    left: 56.5% !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1438,7 +1604,7 @@ body.bookshelf-active .hitbox-container {
     }
     .sapporo-note.intro-note {
         top: 5%;
-        left: 69%;
+        left: 66%;
         width: 29%;
         font-size: clamp(7.5px, 1.25cqw, 12px);
         line-height: 1.2;
@@ -1483,21 +1649,6 @@ body.bookshelf-active .hitbox-container {
         top: max(12px, env(safe-area-inset-top));
         left: max(14px, env(safe-area-inset-left));
         padding: 6px 14px;
-        font-size: 0.85rem;
-    }
-    .background-picker {
-        bottom: max(10px, env(safe-area-inset-bottom));
-        right: max(12px, env(safe-area-inset-right));
-        padding: 4px 8px;
-        font-size: 13px;
-        gap: 2px;
-    }
-    .background-picker label {
-        font-size: 12px;
-    }
-    .background-picker select {
-        font-size: 12px;
-        padding: 2px 4px;
     }
 }
 

@@ -7,7 +7,8 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=11">
+    <link rel="stylesheet" href="style.css?v=26">
+    <link rel="stylesheet" href="meeting.css?v=1">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -56,6 +57,14 @@
         <img class="interactive-item" id="paper" src="assets/a/paper_transparent.png" alt="Paper & Pen">
         <img class="interactive-item" id="phone" src="assets/a/phone_transparent.png" alt="Phone">
         <img id="lap-book-cover" class="lap-book-cover" src="assets/book_reading/hercule-poirots-christmas-cover.jpg?v=2" alt="Hercule Poirot’s Christmas resting on the boy’s lap">
+
+        <nav id="phone-social-links" class="phone-social-links" aria-label="Find Adnan online">
+            <span>find me elsewhere</span>
+            <a href="https://github.com/aDNAn-itis" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            <a href="https://x.com/" target="_blank" rel="noopener noreferrer">X ↗</a>
+            <a href="mailto:adnanmohammad6002@gmail.com">Email ↗</a>
+            <a href="https://cal.com/mohammad-adnan-ry6qtb" id="schedule-meeting" target="_blank" rel="noopener noreferrer">schedule a meet? ↗</a>
+        </nav>
 
         <!-- Cafe project blackboard -->
         <div id="lofi-window" class="table-scene-item lofi-window">
@@ -211,21 +220,7 @@
         
     </div>
     
-    <div class="background-picker">
-        <label for="background-choice">a change of scenery</label>
-        <select id="background-choice">
-            <option value="original" selected>Original floor</option>
-            <option value="park">Japanese park</option>
-            <option value="overcast">Quiet pavement</option>
-            <option value="sunlight">Sunlit pavement</option>
-            <option value="ivory">Ivory garden</option>
-            <option value="tower">Tokyo Tower plaza</option>
-            <option value="overhead">Tokyo glow · overhead</option>
-            <option value="field">Quiet ink meadow</option>
-            <option value="aurora">Aurora snowfall</option>
-        </select>
-        <span id="background-status" class="background-status" role="status"></span>
-    </div>
+
 
     <!-- Pomodoro Timer Room Scene -->
     <div id="pomodoro-scene" class="pomodoro-container">
@@ -290,47 +285,6 @@
             });
         });
 
-        const backgroundFiles = {
-            original: 'black%20_background.png',
-            park: 'japanese_park_ground.png',
-            overcast: 'park_pavement_overcast.png',
-            sunlight: 'park_pavement_sunlight.png',
-            ivory: 'japanese_garden_ivory.png',
-            tower: 'tokyo_tower_plaza.png',
-            overhead: 'tokyo_plaza_overhead.png',
-            field: '../grass_relax/ink-grass-field.png',
-            aurora: 'park_pavement_overcast.png'
-        };
-        const backgroundChoice = document.getElementById('background-choice');
-        const backgroundStatus = document.getElementById('background-status');
-        let backgroundRequest = 0;
-        let activeBackground = 'original';
-        // Each visit starts on the original artwork, including browser form restoration.
-        backgroundChoice.value = 'original';
-        backgroundChoice.addEventListener('change', () => {
-            const selected = backgroundChoice.value;
-            const request = ++backgroundRequest;
-            const path = `assets/a/${backgroundFiles[selected]}`;
-            backgroundStatus.textContent = 'Loading…';
-            const preview = new Image();
-            preview.onload = () => {
-                if (request !== backgroundRequest) return;
-                document.querySelector('.scene-container').style.setProperty('--scene-floor', `url("${path}")`);
-                activeBackground = selected;
-                document.body.classList.toggle('aurora-active', selected === 'aurora');
-                if (selected === 'aurora' && !document.body.classList.contains('winter-boy-active')) {
-                    resetActiveDeskAnimations('boy');
-                    playWinterBoy();
-                }
-                backgroundStatus.textContent = '';
-            };
-            preview.onerror = () => {
-                if (request !== backgroundRequest) return;
-                backgroundChoice.value = activeBackground;
-                backgroundStatus.textContent = 'Couldn’t load this background. Try again.';
-            };
-            preview.src = path;
-        });
 
         // Use Javascript to link the invisible hitboxes to the image animations and click events
         document.querySelectorAll('.hitbox').forEach(box => {
@@ -384,6 +338,7 @@
                 const returningFromHeadphoneBoy = grassRelaxActive && targetName === 'boy';
                 const readingInSakura = grassRelaxActive && targetName === 'books';
                 const readingInWinter = winterActive && targetName === 'books';
+                const wasGrassRelax = grassRelaxActive;
 
                 if (readingInSakura) {
                     playSakuraReading();
@@ -392,6 +347,16 @@
                 if (readingInWinter) {
                     playLapBook(true);
                     return;
+                }
+
+                // Phone toggles social links without disturbing background scenes
+                if (targetName === 'phone') {
+                    togglePhoneSocials();
+                    return;
+                }
+
+                if (targetName === 'laptop' && wasGrassRelax) {
+                    document.body.classList.add('from-grass-relax');
                 }
 
                 resetActiveDeskAnimations(targetName);
@@ -493,6 +458,7 @@
             document.body.classList.remove('bike-active');
             document.body.classList.remove('table-active');
             document.body.classList.remove('laptop-opening');
+            document.body.classList.remove('from-grass-relax');
             stopBikeAnimation();
         });
         
@@ -1412,9 +1378,33 @@
             grassTimers.push(setTimeout(() => grassRelax.classList.add('is-relaxed'), 1280));
         }
 
+        // ----------------------------------------------------
+        // Phone socials — move the existing floor phone in-place
+        // ----------------------------------------------------
+        let phoneSocialsActive = false;
+
+        function clearPhoneSocials() {
+            phoneSocialsActive = false;
+            document.body.classList.remove('phone-socials-active');
+            document.getElementById('phone').classList.remove('is-hovered');
+        }
+
+        function togglePhoneSocials() {
+            phoneSocialsActive = !phoneSocialsActive;
+            document.body.classList.toggle('phone-socials-active', phoneSocialsActive);
+            document.getElementById('phone').classList.remove('is-hovered');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!phoneSocialsActive) return;
+            if (e.target.closest('.phone-social-links') || e.target.closest('.hitbox[data-target="phone"]')) return;
+            clearPhoneSocials();
+        });
+
         function resetActiveDeskAnimations(exceptTarget = '') {
+            if (exceptTarget !== 'phone') clearPhoneSocials();
             if (exceptTarget !== 'books') clearLapBooks();
-            if (exceptTarget !== 'grass-relax') clearGrassRelax();
+            if (exceptTarget !== 'grass-relax' && exceptTarget !== 'phone') clearGrassRelax();
             if (exceptTarget !== 'books') {
                 cosmosAnimationTimers.forEach(clearTimeout);
                 cosmosAnimationTimers = [];
@@ -1425,7 +1415,7 @@
                 setCosmosFrame(0);
             }
 
-            if (exceptTarget !== 'headphone') {
+            if (exceptTarget !== 'headphone' && exceptTarget !== 'phone') {
                 stopHeadphoneMusic();
                 headphoneConnectTimers.forEach(clearTimeout);
                 headphoneConnectTimers = [];
@@ -1435,7 +1425,7 @@
                 headphoneConnectAnimator.src = headphoneConnectFrames[0].src;
             }
 
-            if (exceptTarget !== 'boy') {
+            if (winterActive && exceptTarget !== 'boy' && exceptTarget !== 'books' && exceptTarget !== 'phone') {
                 winterTimers.forEach(clearTimeout);
                 winterTimers = [];
                 winterActive = false;
@@ -1452,6 +1442,7 @@
             document.getElementById('modal-overlay').classList.remove('modal-active');
             document.body.classList.remove('laptop-opening');
             document.body.classList.remove('table-active'); // Hide the table when closing
+            document.body.classList.remove('from-grass-relax');
             resetActiveDeskAnimations();
             
             // Restore all items back to normal visibility and position
