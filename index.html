@@ -7,8 +7,9 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=26">
+    <link rel="stylesheet" href="style.css?v=31">
     <link rel="stylesheet" href="meeting.css?v=1">
+    <link rel="preload" as="image" href="assets/a/park_pavement_sunlight.png">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -118,14 +119,6 @@
 
         <!-- Laptop Opening Animation Frame -->
         <img class="laptop-scene-item" id="laptop-animator" src="assets/laptop_open/f0.png" alt="Laptop Opening Animation">
-
-        <!-- In-place Cosmos book magic; the original two-book layer remains untouched below it. -->
-        <section id="cosmos-magic" class="cosmos-magic" aria-label="Cosmos book opening with starlight">
-            <img id="cosmos-animator" class="cosmos-animator" src="assets/cosmos_magic/f0.png" alt="Thin Cosmos paperback opening">
-            <div class="cosmos-wind" aria-hidden="true">
-                <i></i><i></i><i></i><i></i>
-            </div>
-        </section>
 
         <section id="headphone-connect" class="headphone-connect" aria-label="Headphone cable connecting to the phone">
             <img id="headphone-connect-animator" class="headphone-connect-animator" src="assets/headphone_connect/f0.png" alt="Headphone cable connection animation">
@@ -292,7 +285,7 @@
                 boy: 'Meet Adnan — start snowfall', laptop: 'Explore projects',
                 paper: 'Read about research', phone: 'Contact and GitHub',
                 cycle: 'Go for a bicycle ride', bag: 'Open my bag',
-                books: 'Open the Cosmos book', headphone: 'Connect headphones', cat: 'Meet my cat'
+                books: 'Read a book', headphone: 'Connect headphones', cat: 'Meet my cat'
             };
             if (!box.hasAttribute('data-hover-only')) {
                 box.tabIndex = 0;
@@ -405,7 +398,7 @@
                     return;
                 }
                 
-                // Keep both books in place and animate only Cosmos on top.
+                // Show the current book on the boy’s lap.
                 if (targetName === 'books') {
                     playLapBook(false);
                     return;
@@ -1089,70 +1082,6 @@
         }
 
         // ----------------------------------------------------
-        // In-place Cosmos Book Magic
-        // ----------------------------------------------------
-        const cosmosMagic = document.getElementById('cosmos-magic');
-        const cosmosAnimator = document.getElementById('cosmos-animator');
-        const cosmosFrames = [];
-        for (let i = 0; i <= 6; i++) {
-            const img = new Image();
-            img.src = `assets/cosmos_magic/f${i}.png`;
-            cosmosFrames[i] = img;
-        }
-        const cosmosSequence = [0, 1, 2, 3, 4, 5, 4, 5, 4, 5, 6];
-        const cosmosDelays = [0, 135, 245, 325, 385, 430, 470, 510, 550, 595, 690];
-        let cosmosAnimationTimers = [];
-
-        function setCosmosFrame(frame) {
-            cosmosAnimator.src = cosmosFrames[frame].src;
-        }
-
-        function playCosmosMagic() {
-            cosmosAnimationTimers.forEach(clearTimeout);
-            cosmosAnimationTimers = [];
-            cosmosMagic.classList.remove('wind-active', 'is-settled');
-            document.getElementById('books').classList.remove('is-hovered');
-            setCosmosFrame(0);
-            document.body.classList.add('cosmos-magic-active');
-            document.body.classList.add('cosmos-book-open');
-            cosmosMagic.classList.add('is-active');
-            void cosmosMagic.offsetWidth;
-
-            cosmosSequence.forEach((frame, index) => {
-                const timer = setTimeout(() => {
-                    setCosmosFrame(frame);
-                    if (frame >= 3) cosmosMagic.classList.add('wind-active');
-                    if (index === cosmosSequence.length - 1) cosmosMagic.classList.add('is-settled');
-                }, cosmosDelays[index]);
-                cosmosAnimationTimers.push(timer);
-            });
-        }
-
-        function closeCosmosMagic() {
-            cosmosAnimationTimers.forEach(clearTimeout);
-            cosmosAnimationTimers = [];
-            cosmosMagic.classList.remove('wind-active', 'is-settled');
-
-            // Frames 3–5 are the opening page-flutter and look like a stray
-            // jump when played backwards. Close through the stable poses only.
-            const closingSequence = [6, 2, 1, 0];
-            closingSequence.forEach((frame, index) => {
-                const timer = setTimeout(() => {
-                    setCosmosFrame(frame);
-                }, index * 130);
-                cosmosAnimationTimers.push(timer);
-            });
-
-            // Leave the matching closed animation frame visible. Swapping back
-            // to the separate original-books image causes a one-frame flash.
-            const cleanupTimer = setTimeout(() => {
-                setCosmosFrame(0);
-                document.body.classList.remove('cosmos-book-open');
-            }, closingSequence.length * 130);
-            cosmosAnimationTimers.push(cleanupTimer);
-        }
-
-        // ----------------------------------------------------
         // Simple lap-book states for the normal and winter boys
         // ----------------------------------------------------
         let lapBookActive = false;
@@ -1168,11 +1097,9 @@
             clearTimeout(lapBookTimer);
             if (lapBookActive) {
                 clearLapBooks();
-                closeCosmosMagic();
                 return;
             }
 
-            playCosmosMagic();
             lapBookTimer = setTimeout(() => {
                 lapBookActive = true;
                 document.body.classList.add('lap-book-active');
@@ -1318,7 +1245,6 @@
                 return;
             }
 
-            playCosmosMagic();
             sakuraReadingTimers.push(setTimeout(() => {
                 sakuraReadingActive = true;
                 grassRelax.classList.add('is-reading');
@@ -1405,16 +1331,6 @@
             if (exceptTarget !== 'phone') clearPhoneSocials();
             if (exceptTarget !== 'books') clearLapBooks();
             if (exceptTarget !== 'grass-relax' && exceptTarget !== 'phone') clearGrassRelax();
-            if (exceptTarget !== 'books') {
-                cosmosAnimationTimers.forEach(clearTimeout);
-                cosmosAnimationTimers = [];
-                cosmosMagic.classList.remove('is-active', 'wind-active', 'is-settled');
-                document.body.classList.remove('cosmos-magic-active');
-                document.body.classList.remove('cosmos-book-open');
-                document.getElementById('books').classList.remove('is-hovered');
-                setCosmosFrame(0);
-            }
-
             if (exceptTarget !== 'headphone' && exceptTarget !== 'phone') {
                 stopHeadphoneMusic();
                 headphoneConnectTimers.forEach(clearTimeout);

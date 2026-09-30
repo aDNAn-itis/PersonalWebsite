@@ -79,7 +79,7 @@ body.page-loading .scene-container {
     inset: 0;
     width: 100%;
     height: 100%;
-    background-image: var(--scene-floor, url('assets/a/black%20_background.png'));
+    background-image: url('assets/a/park_pavement_sunlight.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -309,7 +309,7 @@ body.winter-boy-active #boy-surface-snow,
     top: 7%;
     left: 41%;
     margin: 0;
-    color: #57463c;
+    color: #111111;
     font-family: 'Patrick Hand', cursive;
     font-size: clamp(9px, 1.7cqw, 21px);
     line-height: 1.15;
@@ -322,7 +322,7 @@ body.winter-boy-active #boy-surface-snow,
 }
 
 .sapporo-note strong {
-    color: #7a3030;
+    color: #4a1010;
     font-size: clamp(11px, 2.15cqw, 26px);
     font-weight: 400;
 }
@@ -446,12 +446,6 @@ body.winter-boy-active .winter-snow,
 .surface-snow.is-hovered { transform: translateY(-8px) scale(1.03); }
 .bag-surface-snow { top: -3%; bottom: auto; }
 .books-surface-snow { left: 6%; right: auto; }
-
-/* This mask follows the original closed books. Once Cosmos opens, that
-   silhouette no longer matches, so suppress only its stale snow outline. */
-body.cosmos-book-open .books-surface-snow {
-    opacity: 0 !important;
-}
 
 .snow-piles {
     position: fixed;
@@ -731,66 +725,6 @@ body.about-active .headphone-connect {
 body.table-active .lofi-fairy-lights {
     opacity: 1;
     transform: translateY(0);
-}
-
-/* ============================================
-   IN-PLACE COSMOS BOOK MAGIC
-   ============================================ */
-.cosmos-magic {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 14;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.cosmos-magic.is-active {
-    opacity: 1;
-}
-
-body.cosmos-magic-active #books {
-    opacity: 0 !important;
-}
-
-.cosmos-animator {
-    position: absolute;
-    top: 0;
-    left: 6%;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-.cosmos-wind {
-    display: none;
-}
-
-
-.cosmos-wind i {
-    position: absolute;
-    left: 16%;
-    top: 42%;
-    width: 68%;
-    height: 1px;
-    opacity: 0;
-    border-top: 1px solid rgba(215, 231, 244, .64);
-    border-radius: 50%;
-}
-
-.cosmos-wind i:nth-child(2) { top: 50%; width: 82%; animation-delay: -.07s; }
-.cosmos-wind i:nth-child(3) { top: 59%; width: 58%; animation-delay: -.13s; }
-.cosmos-wind i:nth-child(4) { top: 68%; width: 73%; animation-delay: -.18s; }
-
-.cosmos-magic.wind-active:not(.is-settled) .cosmos-wind i {
-    animation: cosmos-wind-sweep .24s linear infinite;
-}
-
-@keyframes cosmos-wind-sweep {
-    from { opacity: 0; transform: translateX(38%) skewX(-18deg); }
-    35% { opacity: .75; }
-    to { opacity: 0; transform: translateX(-42%) skewX(-18deg); }
 }
 
 /* ============================================
@@ -1748,4 +1682,10 @@ body.bookshelf-active .hitbox-container {
         from { opacity: 0; transform: translate(-50%, 20px) scale(0.92); }
         to { opacity: 1; transform: translate(-50%, 0) scale(1); }
     }
+}
+
+/* Keep the laptop room on its original floor. */
+body.laptop-opening .scene-container::before,
+body.table-active .scene-container::before {
+    background-image: url('assets/a/black%20_background.png');
 }
