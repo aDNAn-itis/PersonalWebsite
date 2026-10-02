@@ -1713,3 +1713,17 @@ body[data-room="room3"] .lofi-fairy-lights { display: none; }
 #digital-card img { display: block; width: 100%; height: auto; background: transparent; image-rendering: pixelated; }
 #digital-card button:focus { outline: none; }
 #digital-card button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }
+
+.snow-about-link {
+    color: inherit;
+    text-decoration: underline wavy;
+    text-underline-offset: 4px;
+    visibility: hidden;
+    pointer-events: none;
+}
+body.winter-boy-active:not(.table-active):not(.laptop-opening):not(.bike-active):not(.about-active):not(.bookshelf-active) .winter-boy.is-active.is-settled:not(.is-handing-off) .snow-about-link {
+    visibility: visible;
+    pointer-events: auto;
+}
+.snow-about-link:hover { color: #4a1010; }
+.snow-about-link:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
