@@ -180,12 +180,12 @@ body.phone-socials-active .headphone-connect {
 
 .phone-social-links span {
     margin-bottom: .2em;
-    color: #7d6f68;
+    color: #222222;
 }
 
 .phone-social-links a {
     width: max-content;
-    color: #67443f;
+    color: #111111;
     line-height: 1.05;
     text-decoration: none;
     opacity: 0;
@@ -210,7 +210,8 @@ body.phone-socials-active .phone-social-links a {
 
 .phone-social-links a:hover,
 .phone-social-links a:focus-visible {
-    color: #a84f48;
+    color: #4a1010;
+    text-decoration: underline;
     outline: none;
     transform: translateX(4px);
 }
@@ -1684,8 +1685,31 @@ body.bookshelf-active .hitbox-container {
     }
 }
 
-/* Keep the laptop room on its original floor. */
+/* Green-tile cafe behind the laptop room’s interactive layers. */
 body.laptop-opening .scene-container::before,
 body.table-active .scene-container::before {
-    background-image: url('assets/a/black%20_background.png');
+    background-image: url('assets/rooms/room3/cafe-background-realistic-v2.png');
 }
+
+/* Keep the presentation corner clear above the blackboard. */
+body[data-room="room3"] .lofi-fairy-lights { display: none; }
+
+.phone-social-links a:nth-of-type(5) { transition-delay: 0s, 1.22s, 1.22s; }
+
+#digital-card {
+    width: min(328px, calc(100vw - 32px), calc(100dvh - 32px));
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+}
+#digital-card::backdrop {
+    background: rgba(0, 0, 0, .28);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+#digital-card form { margin: 0; }
+#digital-card button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; }
+#digital-card img { display: block; width: 100%; height: auto; background: transparent; image-rendering: pixelated; }
+#digital-card button:focus { outline: none; }
+#digital-card button:focus-visible { outline: 2px solid #111; outline-offset: 2px; }

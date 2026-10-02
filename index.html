@@ -7,9 +7,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=31">
+    <link rel="stylesheet" href="style.css?v=46">
     <link rel="stylesheet" href="meeting.css?v=1">
     <link rel="preload" as="image" href="assets/a/park_pavement_sunlight.png">
+    <link rel="preload" as="image" href="assets/rooms/room3/cafe-background-realistic-v2.png">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -65,6 +66,7 @@
             <a href="https://x.com/" target="_blank" rel="noopener noreferrer">X ↗</a>
             <a href="mailto:adnanmohammad6002@gmail.com">Email ↗</a>
             <a href="https://cal.com/mohammad-adnan-ry6qtb" id="schedule-meeting" target="_blank" rel="noopener noreferrer">schedule a meet? ↗</a>
+            <a href="#digital-card" id="share-card" aria-haspopup="dialog">share my digital card ↗</a>
         </nav>
 
         <!-- Cafe project blackboard -->
@@ -1647,5 +1649,13 @@
         })();
 
     </script>
+    <dialog id="digital-card" aria-label="Scan to visit Adnan’s website. Click to close.">
+        <form method="dialog">
+            <button type="submit" aria-label="Close QR code" autofocus>
+                <img src="assets/website-qr-transparent.svg" width="328" height="328" alt="Scan this QR code to visit Adnan’s portfolio">
+            </button>
+        </form>
+    </dialog>
+    <script src="digital-card.js?v=2"></script>
 </body>
 </html>
