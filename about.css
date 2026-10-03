@@ -64,6 +64,22 @@ p { font-size: 16px; line-height: 1.8; margin: 0 0 23px; }
 .explore-link { display: inline-block; font-size: 16px; }
 a:hover { text-decoration: underline; }
 a:focus-visible { outline: 2px solid #4a5363; outline-offset: 5px; }
+.raj-note { position: fixed; right: -12px; bottom: -20px; width: min(760px, 48vw); z-index: 0; pointer-events: none; }
+.raj-audio-toggle { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; }
+.raj-audio-toggle:focus-visible { outline: 2px solid #4a5363; outline-offset: -6px; }
+.raj-audio-status { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.raj-reading {
+    display: block;
+    width: 100%;
+    height: auto;
+    opacity: .48;
+    -webkit-mask-image: radial-gradient(ellipse at 85% 85%, #000 24%, transparent 74%);
+    mask-image: radial-gradient(ellipse at 85% 85%, #000 24%, transparent 74%);
+}
+header, main { position: relative; z-index: 1; }
+@media (max-width: 1050px) {
+    .raj-note { position: relative; width: min(620px, 100%); margin: 24px 0 -48px auto; right: auto; bottom: auto; }
+}
 @media (max-width: 600px) {
     body { padding: 24px 22px 48px; }
     main { margin-top: 44px; }
