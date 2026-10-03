@@ -10,8 +10,7 @@ body::before {
 }
 header { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 4px; }
-.page-label { display: inline-flex; align-items: baseline; flex-wrap: wrap; gap: 12px 22px; font-size: 14px; text-decoration: none; }
-.page-label span:first-child { font: 12px/1.4 Arial, sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+.page-label { display: inline-flex; font-size: 14px; line-height: 1.4; text-decoration: none; }
 
 .close-link {
     position: relative;
@@ -65,6 +64,7 @@ p { font-size: 16px; line-height: 1.8; margin: 0 0 23px; }
 a:hover { text-decoration: underline; }
 a:focus-visible { outline: 2px solid #4a5363; outline-offset: 5px; }
 .raj-note { position: fixed; right: -12px; bottom: -20px; width: min(760px, 48vw); z-index: 0; pointer-events: none; }
+.raj-caption { max-width: 440px; margin: 0 48px 16px auto; font-size: 14px; line-height: 1.7; color: #555; }
 .raj-audio-toggle { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; }
 .raj-audio-toggle:focus-visible { outline: 2px solid #4a5363; outline-offset: -6px; }
 .raj-audio-status { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -86,4 +86,10 @@ header, main { position: relative; z-index: 1; }
     h1 { font-size: 23px; }
     .page-label { max-width: 210px; line-height: 1.6; }
     .contact-links { gap: 16px 22px; }
+    .raj-note { width: calc(100% + 44px); max-width: none; margin: 24px -22px -48px; }
+    .raj-caption { max-width: none; margin: 0 22px 16px; }
+    .raj-reading {
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 38%);
+        mask-image: linear-gradient(to bottom, transparent 0%, #000 38%);
+    }
 }
