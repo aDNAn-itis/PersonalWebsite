@@ -1,14 +1,15 @@
 (() => {
     const button = document.querySelector('.raj-audio-toggle');
-    const audio = document.getElementById('raj-audio');
+    const audio = document.getElementById('raj-reel');
     const status = document.querySelector('.raj-audio-status');
     const caption = document.querySelector('.leonard-caption');
     function syncState() {
         const playing = !audio.paused && !audio.ended;
         caption.hidden = !playing;
+        audio.hidden = !playing;
         button.setAttribute('aria-pressed', String(playing));
-        button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} Raj’s audio`);
-        button.title = `Click to ${playing ? 'pause' : 'play'} Raj’s audio`;
+        button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} the reel`);
+        button.title = `Click to ${playing ? 'pause' : 'play'} the reel`;
     }
     audio.addEventListener('play', syncState);
     audio.addEventListener('pause', syncState);
