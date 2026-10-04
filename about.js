@@ -8,8 +8,8 @@
         caption.hidden = !playing;
         audio.hidden = !playing;
         button.setAttribute('aria-pressed', String(playing));
-        button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} the reel`);
-        button.title = `Click to ${playing ? 'pause' : 'play'} the reel`;
+        button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'}`);
+        button.title = `Click to ${playing ? 'pause' : 'play'}`;
     }
     audio.addEventListener('play', syncState);
     audio.addEventListener('pause', syncState);
