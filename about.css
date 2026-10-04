@@ -113,3 +113,16 @@ header, main { position: relative; z-index: 1; }
         mask-image: linear-gradient(to bottom, transparent 0%, #000 38%);
     }
 }
+
+.raj-link { position: relative; display: inline-block; pointer-events: auto; }
+.raj-link, .raj-link:hover { text-decoration: none; }
+.raj-link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='4' viewBox='0 0 10 4'%3E%3Cpath d='M0 3L5 1L10 3' fill='none' stroke='%23555555' stroke-width='.8'/%3E%3C/svg%3E") repeat-x;
+    pointer-events: none;
+}
