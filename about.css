@@ -95,8 +95,34 @@ a:focus-visible { outline: 2px solid #4a5363; outline-offset: 5px; }
     mask-image: radial-gradient(ellipse at 85% 85%, #000 24%, transparent 74%);
 }
 header, main { position: relative; z-index: 1; }
+/* Keep the playing reel, caption and portrait within the laptop viewport. */
+@media (min-width: 1051px) {
+    main { max-width: min(610px, calc(52vw - 60px)); }
+    .raj-note:has(.raj-reel:not([hidden])) {
+        top: 30px;
+        bottom: 20px;
+        display: grid;
+        grid-template-rows: minmax(0, 2fr) auto minmax(0, 3fr);
+        gap: 16px;
+    }
+    .raj-note .raj-reel:not([hidden]) {
+        position: static;
+        width: calc(100% - 72px);
+        height: 100%;
+        min-height: 0;
+        justify-self: center;
+        object-fit: contain;
+    }
+    .raj-note:has(.raj-reel:not([hidden])) .raj-caption { margin-bottom: 0; }
+    .raj-note:has(.raj-reel:not([hidden])) .raj-audio-toggle { min-height: 0; }
+    .raj-note:has(.raj-reel:not([hidden])) .raj-reading {
+        height: 100%;
+        object-fit: contain;
+        object-position: right bottom;
+    }
+}
 @media (max-width: 1050px) {
-    .raj-reel { position: static; display: block; width: calc(100% - 44px); max-width: 540px; margin: 0 auto 20px; }
+    .raj-reel { position: static; display: block; width: calc(100% - 44px); max-width: 540px; max-height: 55svh; object-fit: contain; margin: 0 auto 20px; }
     .raj-reel[hidden] { display: none; }
     .raj-note { position: relative; width: min(620px, 100%); margin: 24px 0 -48px auto; right: auto; bottom: auto; }
 }
