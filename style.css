@@ -485,6 +485,17 @@ body.winter-boy-active .snow-piles { opacity: 1; }
     cursor: pointer;
 }
 
+.hitbox[data-static] {
+    cursor: default;
+    pointer-events: auto;
+}
+
+#bag.is-hovered,
+#paper.is-hovered {
+    transform: none !important;
+    filter: drop-shadow(6px 6px 10px rgba(0,0,0,.18)) !important;
+}
+
 
 
 /* Transparent Overlay Modal */
@@ -1685,14 +1696,12 @@ body.bookshelf-active .hitbox-container {
     }
 }
 
-/* Green-tile cafe behind the laptop room’s interactive layers. */
+/* Original laptop-room background. */
 body.laptop-opening .scene-container::before,
 body.table-active .scene-container::before {
-    background-image: url('assets/rooms/room3/cafe-background-realistic-v2.png');
+    background-image: url('assets/a/black%20_background.png');
 }
 
-/* Keep the presentation corner clear above the blackboard. */
-body[data-room="room3"] .lofi-fairy-lights { display: none; }
 
 .phone-social-links a:nth-of-type(5) { transition-delay: 0s, 1.22s, 1.22s; }
 

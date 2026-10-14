@@ -7,10 +7,10 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=48">
+    <link rel="stylesheet" href="style.css?v=50">
     <link rel="stylesheet" href="meeting.css?v=1">
     <link rel="preload" as="image" href="assets/a/park_pavement_sunlight.png">
-    <link rel="preload" as="image" href="assets/rooms/room3/cafe-background-realistic-v2.png">
+    <link rel="preload" as="image" href="assets/a/black%20_background.png">
     <link rel="preload" as="image" href="assets/scene2/road%20_background.png">
 </head>
 <body class="page-loading" data-room="room3">
@@ -97,7 +97,7 @@
         </div>
         
         <!-- McCafe Coffee Cup (shows up with the table) -->
-        <div id="coffee" class="table-scene-item" style="position: absolute; top: 65%; left: 65%; width: 4%; height: auto; z-index: 50;">
+        <div id="coffee" class="table-scene-item" style="position: absolute; top: 64.5%; left: 62.5%; width: 3.8%; height: auto; z-index: 50;">
             <!-- Realistic Smoke Fumes -->
             <svg viewBox="0 0 100 150" width="200%" height="150px" xmlns="http://www.w3.org/2000/svg" style="overflow: visible; position: absolute; top: -100px; left: -50%; pointer-events: none; z-index: 100;">
               <defs>
@@ -146,11 +146,11 @@
             <div class="hitbox" data-target="cycle" style="top: 57.4%; left: 55.3%; width: 39.1%; height: 31.0%;"></div>
             <div class="hitbox" data-target="boy" style="top: 13.8%; left: 16.3%; width: 58.1%; height: 60.3%;"></div>
             <!-- Bag hitbox moved up by 3% to match the image -->
-            <div class="hitbox" data-target="bag" style="top: 40.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
+            <div class="hitbox" data-target="bag" data-static style="top: 40.2%; left: 58.5%; width: 15.0%; height: 24.1%;"></div>
             <div class="hitbox" data-target="headphone" style="top: 18.1%; left: 51.2%; width: 13.7%; height: 21.7%;"></div>
             <div class="hitbox" data-target="laptop" style="top: 61.8%; left: 39.4%; width: 13.2%; height: 15.8%;"></div>
             <div class="hitbox" data-target="cat" data-hover-only style="top: 47.2%; left: 22.3%; width: 14.4%; height: 11.2%;"></div>
-            <div class="hitbox" data-target="paper" style="top: 12.4%; left: 19.0%; width: 13.5%; height: 18.1%;"></div>
+            <div class="hitbox" data-target="paper" data-static style="top: 12.4%; left: 19.0%; width: 13.5%; height: 18.1%;"></div>
             
             <!-- Books shifted +6% to match the new image position -->
             <div class="hitbox" data-target="books" style="top: 54.8%; left: 11.6%; width: 11.4%; height: 18.1%;"></div>
@@ -283,6 +283,7 @@
 
         // Use Javascript to link the invisible hitboxes to the image animations and click events
         document.querySelectorAll('.hitbox').forEach(box => {
+            if (box.hasAttribute('data-static')) return;
             const accessibleNames = {
                 boy: 'Meet Adnan — start snowfall', laptop: 'Explore projects',
                 paper: 'Read about research', phone: 'Contact and GitHub',
