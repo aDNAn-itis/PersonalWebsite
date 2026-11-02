@@ -1,4 +1,64 @@
 (() => {
+    const loadingStartTime = performance.now();
+    const MIN_LOADING_MS = 1050;
+    const isPreview = new URLSearchParams(window.location.search).has('preview-loading');
+    const barEl = document.getElementById('loading-progress-bar');
+    const pctEl = document.getElementById('loading-status-pct');
+    const pageImages = Array.from(document.querySelectorAll('main img, .raj-note img'));
+    const totalAssets = Math.max(1, pageImages.length);
+    let loadedAssets = 0;
+    let pageLoaded = false;
+    let displayedPct = 0;
+    let revealed = false;
+
+    const countAsset = () => {
+        loadedAssets = Math.min(totalAssets, loadedAssets + 1);
+    };
+    pageImages.forEach(img => {
+        if (img.complete) {
+            countAsset();
+        } else {
+            img.addEventListener('load', countAsset, { once: true });
+            img.addEventListener('error', countAsset, { once: true });
+        }
+    });
+
+    window.addEventListener('load', () => {
+        pageLoaded = true;
+        loadedAssets = totalAssets;
+    });
+
+    function tickProgress(now) {
+        const elapsed = now - loadingStartTime;
+        const timeRatio = Math.min(1, elapsed / MIN_LOADING_MS);
+        const assetRatio = loadedAssets / totalAssets;
+        const targetPct = isPreview
+            ? 18 + Math.round(((Math.sin(now / 900) + 1) / 2) * 74)
+            : (pageLoaded ? Math.round(timeRatio * 100) : Math.min(94, Math.round(assetRatio * 75 + timeRatio * 20)));
+
+        displayedPct += (targetPct - displayedPct) * 0.22;
+        const shown = pageLoaded && timeRatio >= 1 && !isPreview ? 100 : Math.min(100, Math.round(displayedPct));
+
+        if (barEl) barEl.style.width = `${shown}%`;
+        if (pctEl) pctEl.textContent = `${shown}%`;
+
+        if (!isPreview && pageLoaded && timeRatio >= 1 && shown >= 100) {
+            if (!revealed) {
+                revealed = true;
+                requestAnimationFrame(() => {
+                    document.body.classList.remove('page-loading');
+                    const loader = document.getElementById('loading-screen');
+                    if (loader) {
+                        window.setTimeout(() => loader.setAttribute('aria-hidden', 'true'), 500);
+                    }
+                });
+            }
+            return;
+        }
+        requestAnimationFrame(tickProgress);
+    }
+    requestAnimationFrame(tickProgress);
+
     const button = document.querySelector('.raj-audio-toggle');
     const audio = document.getElementById('raj-reel');
     const status = document.querySelector('.raj-audio-status');

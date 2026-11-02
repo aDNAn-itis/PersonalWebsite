@@ -7,7 +7,9 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Interactive Layered Portfolio</title>
-    <link rel="stylesheet" href="style.css?v=50">
+    <link rel="preload" as="image" href="assets/loading/dawn_sky_bg.webp" type="image/webp" fetchpriority="high">
+    <link rel="preload" as="image" href="assets/loading/seiji_spritesheet.webp" type="image/webp" fetchpriority="high">
+    <link rel="stylesheet" href="style.css?v=53">
     <link rel="stylesheet" href="meeting.css?v=1">
     <link rel="preload" as="image" href="assets/a/park_pavement_sunlight.png">
     <link rel="preload" as="image" href="assets/a/black%20_background.png">
@@ -15,6 +17,43 @@
 </head>
 <body class="page-loading" data-room="room3">
     <div id="app-wrapper">
+        <!-- Seiji Waving Bicycle Loading Screen -->
+        <div id="loading-screen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading interactive portfolio">
+            <div class="loading-stage">
+                <div class="loading-art-card">
+                    <img class="loading-sky-bg" src="assets/loading/dawn_sky_bg.webp" width="720" height="720" fetchpriority="high" decoding="async" alt="" aria-hidden="true">
+                    <div class="loading-wind" aria-hidden="true">
+                        <span class="wind-streak wind-streak-1"></span>
+                        <span class="wind-streak wind-streak-2"></span>
+                        <span class="wind-streak wind-streak-3"></span>
+                    </div>
+                    <div class="loading-rider-bob">
+                        <div class="loading-rider-frame">
+                            <img class="loading-rider-sheet" src="assets/loading/seiji_spritesheet.webp" width="3360" height="482" fetchpriority="high" decoding="async" alt="Seiji riding his bicycle and waving hello against the dawn sky">
+                        </div>
+                    </div>
+                    <div class="loading-road" aria-hidden="true">
+                        <div class="loading-bike-shadow"></div>
+                        <span class="road-dash road-dash-1"></span>
+                        <span class="road-dash road-dash-2"></span>
+                        <span class="road-dash road-dash-3"></span>
+                    </div>
+                </div>
+                <div class="loading-meta">
+                    <p class="loading-quote">“Taking the scenic route before sunrise…”</p>
+                    <div class="loading-progress-wrap" aria-hidden="true">
+                        <div class="loading-progress-track">
+                            <div class="loading-progress-bar" id="loading-progress-bar"></div>
+                        </div>
+                        <div class="loading-progress-status">
+                            <span class="loading-status-label">setting up the room</span>
+                            <span class="loading-status-pct" id="loading-status-pct">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="scene-container">
 
         <!-- Ground accumulation stays beneath every illustrated asset, exactly like sakura-ground -->
@@ -273,12 +312,69 @@
 
         // Keep the layered artwork hidden until every initial image has loaded.
         // This prevents the fallback floor and the browser's white canvas from
-        // flashing before the completed room is painted.
-        window.addEventListener('load', () => {
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => document.body.classList.remove('page-loading'));
+        // flashing before the completed room is painted, while giving Seiji's
+        // bicycle greeting and progress indicator a smooth moment to play.
+        (() => {
+            const loadingStartTime = performance.now();
+            const MIN_LOADING_MS = 1150;
+            const isPreview = new URLSearchParams(window.location.search).has('preview-loading');
+            const barEl = document.getElementById('loading-progress-bar');
+            const pctEl = document.getElementById('loading-status-pct');
+            const sceneImages = Array.from(document.querySelectorAll('.scene-container img'));
+            const totalAssets = Math.max(1, sceneImages.length);
+            let loadedAssets = 0;
+            let pageLoaded = false;
+            let displayedPct = 0;
+            let revealed = false;
+
+            const countAsset = () => {
+                loadedAssets = Math.min(totalAssets, loadedAssets + 1);
+            };
+            sceneImages.forEach(img => {
+                if (img.complete) {
+                    countAsset();
+                } else {
+                    img.addEventListener('load', countAsset, { once: true });
+                    img.addEventListener('error', countAsset, { once: true });
+                }
             });
-        });
+
+            window.addEventListener('load', () => {
+                pageLoaded = true;
+                loadedAssets = totalAssets;
+            });
+
+            function tickProgress(now) {
+                const elapsed = now - loadingStartTime;
+                const timeRatio = Math.min(1, elapsed / MIN_LOADING_MS);
+                const assetRatio = loadedAssets / totalAssets;
+                const targetPct = isPreview
+                    ? 18 + Math.round(((Math.sin(now / 900) + 1) / 2) * 74)
+                    : (pageLoaded ? Math.round(timeRatio * 100) : Math.min(94, Math.round(assetRatio * 75 + timeRatio * 20)));
+
+                displayedPct += (targetPct - displayedPct) * 0.22;
+                const shown = pageLoaded && timeRatio >= 1 && !isPreview ? 100 : Math.min(100, Math.round(displayedPct));
+
+                if (barEl) barEl.style.width = `${shown}%`;
+                if (pctEl) pctEl.textContent = `${shown}%`;
+
+                if (!isPreview && pageLoaded && timeRatio >= 1 && shown >= 100) {
+                    if (!revealed) {
+                        revealed = true;
+                        requestAnimationFrame(() => {
+                            document.body.classList.remove('page-loading');
+                            const loader = document.getElementById('loading-screen');
+                            if (loader) {
+                                window.setTimeout(() => loader.setAttribute('aria-hidden', 'true'), 500);
+                            }
+                        });
+                    }
+                    return;
+                }
+                requestAnimationFrame(tickProgress);
+            }
+            requestAnimationFrame(tickProgress);
+        })();
 
 
         // Use Javascript to link the invisible hitboxes to the image animations and click events

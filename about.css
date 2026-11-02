@@ -1,6 +1,237 @@
+@font-face {
+    font-family: 'Patrick Hand';
+    src: url('assets/fonts/patrick-hand.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
 :root { color-scheme: light; font-family: Georgia, 'Times New Roman', serif; color: #252525; background: #fff; }
 * { box-sizing: border-box; }
 body { margin: 0; min-height: 100vh; padding: 30px 36px 70px; }
+body.page-loading { overflow: hidden; }
+body.page-loading > header,
+body.page-loading > main,
+body.page-loading > .raj-note { opacity: 0; }
+header, main, .raj-note { transition: opacity .28s ease-out; }
+
+/* Seiji Bicycle Loading Screen */
+.loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #e8e6da;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.985);
+    transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                visibility 0s linear 0.45s;
+}
+body.page-loading .loading-screen {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: scale(1);
+    transition: none;
+}
+.loading-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+.loading-art-card {
+    position: relative;
+    width: min(265px, 68vw, 44vh);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+.loading-sky-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%),
+                        linear-gradient(to bottom, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%),
+                linear-gradient(to bottom, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+}
+.loading-rider-bob {
+    position: absolute;
+    left: 22%;
+    bottom: 8.5%;
+    width: 56%;
+    z-index: 3;
+    animation: seiji-pedal-bob 0.68s ease-in-out infinite;
+    will-change: transform;
+}
+.loading-rider-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 560 / 482;
+    overflow: hidden;
+    filter: drop-shadow(0 6px 14px rgba(14, 16, 26, 0.42));
+}
+.loading-rider-sheet {
+    display: block;
+    width: 600%;
+    height: 100%;
+    max-width: none;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+    animation: seiji-wave-sheet 0.72s steps(6) infinite;
+    will-change: transform;
+}
+.loading-road {
+    position: absolute;
+    left: 18%;
+    width: 64%;
+    bottom: 7.2%;
+    height: 18px;
+    z-index: 2;
+    overflow: hidden;
+    pointer-events: none;
+}
+.loading-bike-shadow {
+    position: absolute;
+    left: 8%;
+    right: 8%;
+    top: 3px;
+    height: 9px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(10, 10, 14, 0.55) 0%, rgba(10, 10, 14, 0.22) 55%, transparent 80%);
+    animation: seiji-shadow-pulse 0.68s ease-in-out infinite;
+}
+.road-dash {
+    position: absolute;
+    height: 1.5px;
+    border-radius: 2px;
+    background: rgba(255, 214, 153, 0.38);
+    animation: seiji-road-pass 0.85s linear infinite;
+}
+.road-dash-1 { top: 7px; width: 34px; left: -40px; animation-delay: 0s; }
+.road-dash-2 { top: 12px; width: 22px; left: -30px; animation-delay: -0.32s; }
+.road-dash-3 { top: 5px; width: 28px; left: -35px; animation-delay: -0.61s; }
+.loading-wind {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    top: 36%;
+    bottom: 14%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 2;
+}
+.wind-streak {
+    position: absolute;
+    height: 1.5px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(255, 244, 218, 0.42), transparent);
+    animation: seiji-breeze 1.05s linear infinite;
+}
+.wind-streak-1 { top: 22%; width: 48px; left: -56px; animation-delay: -0.15s; }
+.wind-streak-2 { top: 54%; width: 36px; left: -44px; animation-delay: -0.55s; }
+.wind-streak-3 { top: 76%; width: 42px; left: -50px; animation-delay: -0.82s; }
+.loading-meta {
+    margin-top: 2px;
+    width: min(245px, 66vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.loading-quote {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-style: italic;
+    font-size: 13.5px;
+    line-height: 1.5;
+    letter-spacing: 0.015em;
+    color: rgba(45, 42, 36, 0.78);
+    text-align: center;
+}
+.loading-progress-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.loading-progress-track {
+    position: relative;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: rgba(58, 53, 45, 0.14);
+    overflow: hidden;
+}
+.loading-progress-bar {
+    width: 0%;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #3c5482 0%, #c85232 65%, #e59a52 100%);
+    transition: width 0.12s ease-out;
+}
+.loading-progress-status {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    font-family: 'Patrick Hand', Georgia, 'Times New Roman', serif;
+    font-size: 13.5px;
+    letter-spacing: 0.03em;
+    color: rgba(58, 53, 45, 0.62);
+}
+.loading-status-pct {
+    font-variant-numeric: tabular-nums;
+    color: rgba(45, 42, 36, 0.78);
+}
+@keyframes seiji-wave-sheet {
+    from { transform: translate3d(0%, 0, 0); }
+    to { transform: translate3d(-100%, 0, 0); }
+}
+@keyframes seiji-pedal-bob {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-0.35deg); }
+    50% { transform: translate3d(0, -4.5px, 0) rotate(0.45deg); }
+}
+@keyframes seiji-shadow-pulse {
+    0%, 100% { transform: scaleX(1) scaleY(1); opacity: 0.95; }
+    50% { transform: scaleX(0.93) scaleY(0.82); opacity: 0.72; }
+}
+@keyframes seiji-road-pass {
+    0% { transform: translate3d(-20px, 0, 0); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translate3d(320px, 0, 0); opacity: 0; }
+}
+@keyframes seiji-breeze {
+    0% { transform: translate3d(-30px, 0, 0); opacity: 0; }
+    25% { opacity: 0.85; }
+    75% { opacity: 0.85; }
+    100% { transform: translate3d(380px, 0, 0); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .loading-rider-bob,
+    .loading-rider-sheet,
+    .loading-bike-shadow,
+    .road-dash,
+    .wind-streak {
+        animation: none;
+    }
+}
 body::before {
     content: '';
     position: fixed;
