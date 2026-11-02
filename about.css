@@ -53,6 +53,11 @@ body.page-loading .loading-screen {
     display: flex;
     align-items: flex-end;
     justify-content: center;
+    opacity: 0;
+    transition: opacity 0.16s ease-out;
+}
+.loading-art-card.is-ready {
+    opacity: 1;
 }
 .loading-sky-bg {
     position: absolute;

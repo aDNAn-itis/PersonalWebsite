@@ -8,14 +8,14 @@
     <link rel="preload" as="image" href="assets/loading/dawn_sky_bg.webp" type="image/webp" fetchpriority="high">
     <link rel="preload" as="image" href="assets/loading/seiji_spritesheet.webp" type="image/webp" fetchpriority="high">
     <link rel="preload" as="image" href="assets/raj-reading.webp" type="image/webp">
-    <link rel="stylesheet" href="about.css?v=29">
+    <link rel="stylesheet" href="about.css?v=30">
 </head>
 <body class="page-loading">
     <!-- Seiji Waving Bicycle Loading Screen -->
     <div id="loading-screen" class="loading-screen" role="status" aria-live="polite" aria-label="Loading page">
         <div class="loading-stage">
-            <div class="loading-art-card">
-                <img class="loading-sky-bg" src="assets/loading/dawn_sky_bg.webp" width="720" height="720" fetchpriority="high" decoding="async" alt="" aria-hidden="true">
+            <div class="loading-art-card" id="loading-art-card">
+                <img class="loading-sky-bg" src="assets/loading/dawn_sky_bg.webp" width="480" height="480" fetchpriority="high" decoding="sync" alt="" aria-hidden="true">
                 <div class="loading-wind" aria-hidden="true">
                     <span class="wind-streak wind-streak-1"></span>
                     <span class="wind-streak wind-streak-2"></span>
@@ -23,7 +23,7 @@
                 </div>
                 <div class="loading-rider-bob">
                     <div class="loading-rider-frame">
-                        <img class="loading-rider-sheet" src="assets/loading/seiji_spritesheet.webp" width="3360" height="482" fetchpriority="high" decoding="async" alt="Seiji riding his bicycle and waving hello against the dawn sky">
+                        <img class="loading-rider-sheet" src="assets/loading/seiji_spritesheet.webp" width="2400" height="344" fetchpriority="high" decoding="sync" alt="Seiji riding his bicycle and waving hello against the dawn sky">
                     </div>
                 </div>
                 <div class="loading-road" aria-hidden="true">
@@ -33,6 +33,21 @@
                     <span class="road-dash road-dash-3"></span>
                 </div>
             </div>
+            <script>
+                (() => {
+                    const card = document.getElementById('loading-art-card');
+                    if (!card) return;
+                    const imgs = Array.from(card.querySelectorAll('img'));
+                    Promise.all(imgs.map(img => (
+                        img.complete
+                            ? (img.decode ? img.decode().catch(() => {}) : Promise.resolve())
+                            : new Promise(res => {
+                                img.addEventListener('load', () => (img.decode ? img.decode().catch(() => {}).finally(res) : res()), { once: true });
+                                img.addEventListener('error', res, { once: true });
+                            })
+                    ))).finally(() => card.classList.add('is-ready'));
+                })();
+            </script>
             <div class="loading-meta">
                 <p class="loading-quote">“Taking the scenic route before sunrise…”</p>
                 <div class="loading-progress-wrap" aria-hidden="true">
