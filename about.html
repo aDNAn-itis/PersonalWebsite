@@ -7,7 +7,8 @@
     <title>About — Mohammad Adnan</title>
     <link rel="preload" as="image" href="assets/loading/dawn_sky_bg.webp" type="image/webp" fetchpriority="high">
     <link rel="preload" as="image" href="assets/loading/seiji_spritesheet.webp" type="image/webp" fetchpriority="high">
-    <link rel="stylesheet" href="about.css?v=28">
+    <link rel="preload" as="image" href="assets/raj-reading.webp" type="image/webp">
+    <link rel="stylesheet" href="about.css?v=29">
 </head>
 <body class="page-loading">
     <!-- Seiji Waving Bicycle Loading Screen -->
@@ -62,13 +63,13 @@
         <a class="explore-link" href="interactive.html">Explore my full website</a>
     </main>
     <aside class="raj-note" aria-label="A little Big Bang Theory inspiration">
-        <video id="raj-reel" class="raj-reel" src="assets/raj-reel.mp4" preload="none" playsinline hidden aria-label="The Big Bang Theory clip"></video>
+        <video id="raj-reel" class="raj-reel" src="assets/raj-reel.mp4" preload="metadata" playsinline hidden aria-label="The Big Bang Theory clip"></video>
         <p class="raj-caption">Hoping to become the <a class="raj-link" href="https://en.wikipedia.org/wiki/Raj_Koothrappali" target="_blank" rel="noopener noreferrer">Raj</a> of my universe, and hoping to be friends with an astronaut, an experimental physicist, and a theoretical physicist.<span class="leonard-caption" hidden> …but hopefully with <a class="raj-link" href="https://en.wikipedia.org/wiki/Leonard_Hofstadter" target="_blank" rel="noopener noreferrer">Leonard</a>’s luck in love.</span></p>
         <button class="raj-audio-toggle" type="button" aria-label="Play" aria-pressed="false" title="Click to play">
-            <img class="raj-reading" src="assets/raj-reading.png" width="1200" height="900" alt="Raj Koothrappali reading on the sofa, wrapped in a blanket">
+            <img class="raj-reading" src="assets/raj-reading.webp" width="1200" height="900" decoding="sync" alt="Raj Koothrappali reading on the sofa, wrapped in a blanket">
         </button>
         <span class="raj-audio-status" role="status"></span>
     </aside>
-    <script src="about.js?v=8"></script>
+    <script src="about.js?v=9"></script>
 </body>
 </html>

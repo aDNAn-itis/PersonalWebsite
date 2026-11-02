@@ -24,8 +24,12 @@
     });
 
     window.addEventListener('load', () => {
-        pageLoaded = true;
         loadedAssets = totalAssets;
+        Promise.all(
+            pageImages.map(img => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()))
+        ).finally(() => {
+            pageLoaded = true;
+        });
     });
 
     function tickProgress(now) {
