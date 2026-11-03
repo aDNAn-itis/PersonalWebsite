@@ -22,7 +22,7 @@ header, main, .raj-note { transition: opacity .28s ease-out; }
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #e8e6da;
+    background-color: #ffffff;
     pointer-events: none;
     opacity: 0;
     visibility: hidden;
@@ -64,16 +64,10 @@ body.page-loading .loading-screen {
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
-    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%),
-                        linear-gradient(to bottom, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%);
-    mask-image: linear-gradient(to right, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%),
-                linear-gradient(to bottom, transparent 0%, #000 3.5%, #000 96.5%, transparent 100%);
-    -webkit-mask-composite: source-in;
-    mask-composite: intersect;
 }
 .loading-rider-bob {
     position: absolute;
